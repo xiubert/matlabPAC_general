@@ -1,0 +1,6 @@
+#ignore extraneous folders:
+old/
+etc/
+
+#ignore temporary matlab files:
+*.asv
