@@ -12,12 +12,11 @@ function Gset = Vwant2gain(Vwant,Vref,varargin)
 %
 %   See also Volt2dB.m, dBwant2voltage.m
 
-if ~isempty(varargin) && length(varargin)==1
-    Gref = varargin{1};
-elseif isempty(varargin)
-    Gref = 1;
-else
-    error('Too many inputs')
+switch nargin
+    case 2
+        Gref = 1;
+    case 3
+        Gref = varargin{1};
 end
 
 Gset = Gref*(Vwant./Vref);

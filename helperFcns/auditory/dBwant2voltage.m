@@ -12,12 +12,11 @@ function Vwant = dBwant2voltage(dBwant,Vref,varargin)
 %
 %   See also Volt2dB.m, Vwant2gain.m
 
-if ~isempty(varargin) && length(varargin)==1
-    dBref = varargin{1};
-elseif isempty(varargin)
-    dBref = 94;
-else
-    error('Too many inputs')
+switch nargin
+    case 2
+        dBref = 94;
+    case 3
+        dBref = varargin{1};
 end
 
 Vwant = 10.^((dBwant-dBref)/20)*Vref;
