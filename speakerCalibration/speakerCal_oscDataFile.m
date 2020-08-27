@@ -1,7 +1,7 @@
 %% Speaker calibration using oscilloscope data files
 %obtains dB based upon average of voltage reference readings
 clearvars;close all
-oscDataDir = 'C:\Users\PAC\OneDrive - University of Pittsburgh\Personal\Thanos Lab\speaker calibration\calibrationData\Stelios\ST';
+oscDataDir = 'C:\Users\Patrick\OneDrive - University of Pittsburgh\Personal\Thanos Lab\speaker calibration\stelios\NEW_FOAL';
 dataDir = dir(oscDataDir);
 dataDir = dataDir(~cellfun(@isempty,regexp({dataDir.name},'[A-Z]{3}\d{4}','match','once')));
 refSel = listdlg('PromptString','Select reference folders','ListString',{dataDir.name});

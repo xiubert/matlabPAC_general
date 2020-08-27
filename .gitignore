@@ -4,3 +4,6 @@ etc/
 
 #ignore temporary matlab files:
 *.asv
+
+#ignore alternative versions from oneDrive
+*2Photon-PC*
