@@ -20,10 +20,10 @@ oscSettings.sampleInterval = sMat(2);
 oscSettings.timeInterval = sMat(12);
 oscSettings.fS = 1/oscSettings.sampleInterval;
 oscSettings.verticalScale = sMat(9);
-oscSettings.verticalOffest = sMat(10);
+oscSettings.verticalOffset = sMat(10);
 clear sMat
 
 dMat = xlsread(fullFilename,['D1:E' num2str(oscSettings.nSamples)]);
 t = dMat(:,1);
-V = dMat(:,2).*oscSettings.verticalScale+oscSettings.verticalOffest;
+V = dMat(:,2).*oscSettings.verticalScale+oscSettings.verticalOffset;
 end
