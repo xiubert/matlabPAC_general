@@ -18,7 +18,7 @@ function [] = genPureTone_transcranial_hardcodedGain()
 %Because these test tones are hardcoded with respective gain:
 %GAIN SHOULD ALWAYS BE SET TO '1' IN EPHUS STIMULATOR
 
-signalSavePath = 'C:\Data\Rig Software\250kHzPulses\PC_TestTones_transcranial'; %Folder for .signal files
+signalSavePath = 'C:\Data\Rig Software\250kHzPulses\testTones_transcranial'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
 stimOnset = 3; %seconds | time of tone onset in signal
 stimLen = 0.4; %seconds | duration of pure-tone (just pure-tone not entire signal)
@@ -37,7 +37,7 @@ params = inputdlg({
     'Duration of entire trace (s)',...
     'Envelope ramp time (linear) (s)',...
     'Pure-tone stimulus amplitude (dB) (comma separated list)'},...
-    'Calibration Stimulus Parameters (frequencies defined in calibration file)',...
+    'Stimulus Parameters (frequencies defined in calibration file)',...
     [1 120],defPinput);
 
 signalSavePath = params{1};
