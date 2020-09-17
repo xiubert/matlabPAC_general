@@ -15,7 +15,7 @@ function [] = genPureTone_speakerCalibration_gain1()
 %may want to run stim_in_DRC_to_signal_cutout_loop.m first or
 %MakeContrastDRClvlMat.m to get frequency vector
 
-freqSavePath = 'C:\Users\PAC\OneDrive - University of Pittsburgh\Personal\Thanos Lab\speaker calibration\';
+freqSavePath = 'C:\Data\Rig Software\speaker calibration\';
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\';
 fSampling = 250000; %sample rate for signal (via DAQ settings)
 preDelay = 0; %seconds | delay time before tone onset in signal
