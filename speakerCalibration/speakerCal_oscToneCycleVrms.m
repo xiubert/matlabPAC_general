@@ -79,6 +79,7 @@ dBwant = 75;
 if exist('Vout','var')~=1
     Vout = calibrationInvFilt.Vout;
     micCalV = calibrationInvFilt.micCalV;
+    micCaldB = calibrationInvFilt.micCaldBm;
     freq = calibrationInvFilt.freq;
     Gcal = calibrationInvFilt.Gcal;
     oct = calibrationInvFilt.oct;
@@ -98,7 +99,7 @@ title({['Gain Setting: ' num2str(Gcal)],...
     ['Red Bar: ' num2str(dBwant) ' dB SPL']})
 
 subplot(2,1,2)
-semilogx(freq,Vout2dB(meanVout,uMicCalV,micCaldB),'o-')
+semilogx(freq,Volt2dB(meanVout,uMicCalV,micCaldB),'o-')
 xlabel('Frequency (Hz)')
 ylabel('dB SPL')
 % subplot(2,1,2)
@@ -111,13 +112,13 @@ Gset = Vwant2gain(Vwant,meanVout,Gcal);
 %Show frequencies that would require gain above 10000 and those that do not
 subplot(2,1,2)
 hold on
-plot(freq(Gset>10000),Vout2dB(meanVout(Gset>10000),uMicCalV,micCaldB),'ro')
+plot(freq(Gset>10000),Volt2dB(meanVout(Gset>10000),uMicCalV,micCaldB),'ro')
 
 hold on
-plot(freq(Gset<=10000),Vout2dB(meanVout(Gset<=10000),uMicCalV,micCaldB),'go')
+plot(freq(Gset<=10000),Volt2dB(meanVout(Gset<=10000),uMicCalV,micCaldB),'go')
 
 %% Create gain chart
 dBwant = 30:5:80;
 Vwant = dBwant2voltage(dBwant,uMicCalV,micCaldB);
-Gset = Vwant2gain(Vwant,meanVout,calibrationInvFilt.Gcal);
+Gset = Vwant2gain(Vwant,meanVout,Gcal);
 
