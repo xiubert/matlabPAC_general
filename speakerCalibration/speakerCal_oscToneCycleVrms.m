@@ -8,17 +8,17 @@
     %gain vs Vout is linear, thus can scale V by some gain to obtain
     %desired Vout
 
-%% Inverse Filter Calibration Approach w/ Dialog Input | 20181128
+%% Inverse Filter Calibration Approach w/ Dialog Input
 %new freq range:  5-40kHz 1/8 oct interval (25 freq) %pre 2019
 %2019 onward: 5-52 kHz @ 1/8 oct interval (29 freq)
 %load freq
 clearvars;close all;
-[freqFile, freqFilePath] = uigetfile('C:\Users\2Photon\Documents\Patrick\OneDrive - University of Pittsburgh\Personal\Thanos Lab\speakercal\*.mat',...
+[freqFile, freqFilePath] = uigetfile('C:\Data\Rig Software\speakerCalibration\*.mat',...
     'Choose mat file containing frequency vector...');
 load([freqFilePath freqFile])
 
 %default values
-micType = '1/8 inch (B&K 4183)';
+micType = 'BK4183';
 VtoPa = 3.16;
 Gcal = 1500;
 micCalV = '36.6 36.3 36.2';
@@ -55,16 +55,16 @@ calibrationInvFilt.date = datestr(now,'yyyymmdd');
 calibrationInvFilt.micType = micType;
 calibrationInvFilt.VtoPa = VtoPa;
 calibrationInvFilt.micCalV = micCalV;
-calibrationInvFilt.micCaldBm = micCaldB;
+calibrationInvFilt.micCaldB = micCaldB;
 calibrationInvFilt.Gcal = Gcal;
 calibrationInvFilt.freq = freq;
 calibrationInvFilt.Vout = Vout;
 calibrationInvFilt.oct = oct;
 
-savePath = 'C:\Users\2Photon\Documents\Patrick\OneDrive - University of Pittsburgh\Personal\Thanos Lab\speakercal\calibrationData';
+savePath = 'C:\Data\Rig Software\speakerCalibration\';
 save(fullfile(savePath,['InvFiltCal_'...
-    micType(regexp(micType,'/')+1) 'thInchMic'...
-    '_Gain' num2str(Gcal) '_'...
+    micType 'mic_'...
+    num2str(Gcal) 'gain_'...
     num2str(round(freq(1)/1000)) '-' num2str(round(freq(end)/1000)) ...
     'kHz_' num2str(round(1./oct)) 'thOctInt_' ...
     num2str(datestr(now,'yyyymmdd')) '.mat']),'calibrationInvFilt');
@@ -79,7 +79,7 @@ dBwant = 75;
 if exist('Vout','var')~=1
     Vout = calibrationInvFilt.Vout;
     micCalV = calibrationInvFilt.micCalV;
-    micCaldB = calibrationInvFilt.micCaldBm;
+    micCaldB = calibrationInvFilt.micCaldB;
     freq = calibrationInvFilt.freq;
     Gcal = calibrationInvFilt.Gcal;
     oct = calibrationInvFilt.oct;

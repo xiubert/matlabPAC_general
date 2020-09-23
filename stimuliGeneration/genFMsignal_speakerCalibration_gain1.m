@@ -111,14 +111,6 @@ if exist(dest,'dir')~=7
 end
 
 %% create envelope mask for signal w/r/t parameters set
-% t = 0:1/fSampling:traceLength-(1/fSampling);
-% 
-% mask = [zeros(1,sum(t<pulseOnset))... %pre tone
-%     linspace(0,1,length(t(t>=pulseOnset & t<pulseOnset+rampTime))) ... %ramp up
-%     ones(1,sum(t>=pulseOnset+rampTime & t<pulseOnset+pulseLen)) ... %tone
-%     zeros(1,sum(t>=pulseOnset+pulseLen))]; %time after tone
-
-
 time = 0:1/fSampling:traceLength-(1/fSampling);
 
 if strcmp(rampType,'sinSquared')

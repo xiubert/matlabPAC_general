@@ -19,4 +19,4 @@ switch nargin
         dBref = varargin{1};
 end
 
-Vwant = 10.^((dBwant-dBref)/20)*Vref;
+Vwant = 10.^((dBwant-dBref)/20).*Vref;

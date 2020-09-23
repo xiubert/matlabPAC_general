@@ -1,13 +1,15 @@
-function Gset = Vwant2gain(Vwant,Vref,varargin)
+function Gset = Vwant2gain(Vwant,V_Gref,varargin)
 % Vwant2gain: calculate gain needed to achieve desired voltage.
 %   Gset = Vwant2gain(Vwant,Vref,Gref)
 %           
 %       INPUT:
 %           Vwant, --> desired voltage output
-%           Vref --> measured reference voltage (eg from mic via oscillocope via
-%                       mic calibrator)
+%           V_Gref --> measured voltage at Gain reference
+%                      eg. if calibrated using 1500 gain, V_Gref is
+%                      output voltage from mic of stimulus (usually
+%                      pure-tone) given Gref gain
 %
-%           varargin, --> reference gain value used to obtain Vref
+%           varargin, --> reference gain value used to obtain V_Gref
 %                         defaults to 1              
 %
 %   See also Volt2dB.m, dBwant2voltage.m
@@ -19,4 +21,4 @@ switch nargin
         Gref = varargin{1};
 end
 
-Gset = Gref*(Vwant./Vref);
+Gset = Gref.*(Vwant./V_Gref);

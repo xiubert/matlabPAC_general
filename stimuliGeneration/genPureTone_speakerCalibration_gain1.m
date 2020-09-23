@@ -55,8 +55,6 @@ end
 
 clear params
 %% Frequencies
-% load('C:\Users\2Photon\Documents\Patrick\OneDrive - University of Pittsburgh\Personal\Thanos Lab\stimuli\DRC mat files\5kHz-25kHz_DRC_freq.mat')
-
 answer = questdlg('Define or Load Frequency Range?','Frequency Range',...
     'Define','Load Previous','Define');
 
