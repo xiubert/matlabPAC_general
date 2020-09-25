@@ -10,7 +10,7 @@ function [] = genFMsignal_hardcodedGain()
 %              IN EPHUS STIMULATOR
 %
 %
-%   See also genFMsignal_speakerCalibration_gain1.m, genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain.m, inspectSignalObject.m
+%   See also genFMsignal_speakerCalibration_gain1.m, genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain1.m, inspectSignalObject.m
 
 
 %% PARAMS
@@ -66,14 +66,16 @@ if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
 end
 
-%% Load inverseFilter calibration file w/ frequencies
-[invCalFile,InvCalFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\InvFiltCal*.mat',...
+%% Load calibration file w/ frequencies
+[calFile,calFilPath] = uigetfile(...
+    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
     'Load inverse filter calibration file for respective frequencies');
-load([InvCalFilPath invCalFile]);
-meanVout = mean(calibrationInvFilt.Vout,2);
-uMicCalV = mean(calibrationInvFilt.micCalV);
-freq = calibrationInvFilt.freq;
+calS = load([calFilPath calFile]);
+calSname = fieldnames(calS);
+calSname = calSname{1};
+meanVout = mean(calS.(calSname).Vout,2);
+uMicCalV = mean(calS.(calSname).micCalV);
+freq = calS.(calSname).freq;
 
 
 %% Tones and amplitune mask 
@@ -98,7 +100,15 @@ rampMaskedPulses = toneRampMask.*pulses;
 
 %% gain tones and save signals
 Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calibrationInvFilt.Gcal);
+Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+if any(Gset>10000,'all')
+    warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
+    [a,b] = find(Gset>10000);
+    Tproblem = table(freq(a)',dBlvls(b)',...
+        Gset(sub2ind(size(Gset),a,b)),Gset(sub2ind(size(Gset),a,b))./1000,...
+        'VariableNames',{'sound_ID','dBwant','Gset','voltage'})
+    error('Can''t send more than 10V to speaker driver')
+end
 nFq = length(freq);
 
 for nAmpl = 1:length(dBlvls)

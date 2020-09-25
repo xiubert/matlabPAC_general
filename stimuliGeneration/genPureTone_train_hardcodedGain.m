@@ -10,7 +10,10 @@ function [] = genPureTone_train_hardcodedGain()
 %              GAIN SHOULD ALWAYS BE SET TO '1' 
 %              IN EPHUS STIMULATOR
 %
-%   See also genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain.m, inspectSignalObject.m
+%   See also genPureTone_transcranial_hardcodedGain.m,
+%   inspectSignalObject.m,
+%   genPureTone_speakerCalibration_gain1.m,
+%   genFMsignal_hardcodedGain.m
 
 %Because these test tones are hardcoded with respective gain:
 %GAIN SHOULD ALWAYS BE SET TO '1' IN EPHUS STIMULATOR
@@ -22,13 +25,14 @@ pulseLen = 400; %ms | duration of pure-tone (just pure-tone not entire signal)
 ISI = 1000; %ms
 nStim = 3;
 afterStim = 3000; %ms
-toneLinRampTime = 10; %ms
+rampType = 'linear';
+rampTime = 10; %ms
 dBlvls = '50, 60, 70';
 
 defPinput = {signalSavePath,num2str(fSampling),...
     num2str(stimOnset),num2str(pulseLen),...
     num2str(ISI),num2str(nStim),num2str(afterStim),...
-    num2str(toneLinRampTime),dBlvls};
+    rampType,num2str(rampTime),dBlvls};
 
 params = inputdlg({
     'Signal file save path',...
@@ -38,7 +42,8 @@ params = inputdlg({
     'ISI: time between pure-tone pulses (ms)',...
     'Number of pure-tone pulses',...
     'Time after last pure-tone pulse until end of signal (ms)',...
-    'Envelope ramp time (linear) (ms)',...
+    'Tone ramp type ("linear" or "sinSquared")',...
+    'Tone ramp time (ms)',...
     'Pure-tone stimulus amplitude (dB) (comma separated list)'},...
     'Stimulus Parameters (frequencies defined in calibration file)',...
     [1 120],defPinput);
@@ -49,33 +54,46 @@ if ~isfolder(signalSavePath)
 end
 fSampling = str2double(params{2});
 stimOnset = str2double(params{3});
-pulseLen = str2double(params{4});
+pulseLen = str2double(params{4})/1000;
 ISI = str2double(params{5});
 nStim = str2double(params{6});
-afterStim = str2double(params{7});
-toneLinRampTime = str2double(params{8});
-dBlvls = cellfun(@str2double,strsplit(params{9},','));
+afterStim = str2double(params{7})/1000;
+rampType = params{8};
+rampTime = str2double(params{9})/1000;
+dBlvls = cellfun(@str2double,strsplit(params{10},','));
 
-%% Load inverseFilter calibration file for frequencies and associated gain
-[invCalFile,InvCalFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\InvFiltCal*.mat',...
+%% Load calibration file w/ frequencies
+[calFile,calFilPath] = uigetfile(...
+    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
     'Load inverse filter calibration file for respective frequencies');
-load([InvCalFilPath invCalFile],'calibrationInvFilt');
-meanVout = mean(calibrationInvFilt.Vout,2);
-uMicCalV = mean(calibrationInvFilt.micCalV);
-
-%freq list
-freq = calibrationInvFilt.freq;
+calS = load([calFilPath calFile]);
+calSname = fieldnames(calS);
+calSname = calSname{1};
+meanVout = mean(calS.(calSname).Vout,2);
+uMicCalV = mean(calS.(calSname).micCalV);
+freq = calS.(calSname).freq;
 
 %% create pure-tones and train matrix
 
+tPulse = 0:1/fSampling:pulseLen-(1/fSampling);
 %create pulse for each frequency
-tones = sin(2.*pi.*freq'.*(0:1/fSampling:(pulseLen/1000)-(1/fSampling)));
+tones = sin(2.*pi.*freq'.*tPulse);
 
 %ramp mask for a single pulse of length pulseLen for each frequency
-toneRampMask = [linspace(0,1,(toneLinRampTime/1000)*fSampling) ... %ramp up
-    ones(1,((pulseLen/1000)-2*(toneLinRampTime/1000))*fSampling)... %stim
-    linspace(1,0,(toneLinRampTime/1000)*fSampling)]; %ramp down
+if strcmp(rampType,'linear')
+    
+    toneRampMask = [linspace(0,1,(rampTime)*fSampling) ... %ramp up
+        ones(1,((pulseLen)-2*(rampTime))*fSampling)... %stim
+        linspace(1,0,(rampTime)*fSampling)]; %ramp down
+
+elseif strcmp(rampType,'sinSquared')
+    f = 1/rampTime;
+    f = 0.25*f; %first quarter of sin(x)^2 is ramp up
+    
+    toneRampMask = [sin(2*pi*f*tPulse(tPulse<rampTime)).^2 ... %ramp up
+        ones(1,(pulseLen-2*rampTime)*fSampling) ... %stim
+        cos(2*pi*f*tPulse(tPulse<rampTime)).^2]; %ramp down
+end
 
 %scale tones for each frequency by ramp mask
 rampMaskedTones = toneRampMask.*tones;
@@ -84,13 +102,21 @@ rampMaskedTones = toneRampMask.*tones;
 stimTrainAmpOne = [zeros(length(freq),stimOnset*fSampling) ... %before train
     repmat([rampMaskedTones ...
     zeros(length(freq),(ISI./1000)*fSampling)],1,nStim-1) rampMaskedTones ... %train
-    zeros(length(freq),(afterStim./1000)*fSampling)]; %after train
+    zeros(length(freq),(afterStim)*fSampling)]; %after train
 
 traceLength = size(stimTrainAmpOne,2)/fSampling;
 
 %% gain tones and save signals
 Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calibrationInvFilt.Gcal);
+Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+if any(Gset>10000,'all')
+    warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
+    [a,b] = find(Gset>10000);
+    Tproblem = table(freq(a)',dBlvls(b)',...
+        Gset(sub2ind(size(Gset),a,b)),Gset(sub2ind(size(Gset),a,b))./1000,...
+        'VariableNames',{'sound_ID','dBwant','Gset','voltage'})
+    error('Can''t send more than 10V to speaker driver')
+end
 
 for nAmpl = 1:length(dBlvls)
     clear gainedRampMaskedTones
@@ -104,10 +130,11 @@ for nAmpl = 1:length(dBlvls)
                 num2str(dBlvls(nAmpl)) 'dB_pureToneTrain_' ...
                 num2str(ISI) 'msISI_' ...
                 num2str(nStim) 'pulses_' ...
-                num2str(pulseLen) 'msPulse_' ...
+                num2str(pulseLen*1000) 'msPulse_' ...
                 num2str(stimOnset) 'sBegin_' ...           
-                num2str(afterStim) 'msAfterTrain_' ...
-                num2str(toneLinRampTime) 'msRamp_' ...
+                num2str(afterStim*1000) 'msAfterTrain_' ...
+                rampType 'Ramp' ...
+                num2str(rampTime*1000) 'ms_' ...
                 num2str(traceLength*1000) 'msTotal_Fs' ...
                 num2str(fSampling/1000) 'kHz'];
             

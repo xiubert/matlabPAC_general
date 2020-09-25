@@ -18,7 +18,7 @@ clearvars;close all;
 load([freqFilePath freqFile])
 
 %default values
-micType = 'BK4183';
+micType = 'BK4954-B'; %<-- 1/4 in | other: BK4183-A-015 (1/8 in) 
 VtoPa = 3.16;
 Gcal = 1500;
 micCalV = '36.6 36.3 36.2';
@@ -51,23 +51,23 @@ end
 Vout = cell2mat(cellfun(@str2num,vertcat(calInput{:}),'uni',0));
 
 %% save data in structure
-calibrationInvFilt.date = datestr(now,'yyyymmdd');
-calibrationInvFilt.micType = micType;
-calibrationInvFilt.VtoPa = VtoPa;
-calibrationInvFilt.micCalV = micCalV;
-calibrationInvFilt.micCaldB = micCaldB;
-calibrationInvFilt.Gcal = Gcal;
-calibrationInvFilt.freq = freq;
-calibrationInvFilt.Vout = Vout;
-calibrationInvFilt.oct = oct;
+calibration_oscopeVrms.date = datestr(now,'yyyymmdd');
+calibration_oscopeVrms.micType = micType;
+calibration_oscopeVrms.VtoPa = VtoPa;
+calibration_oscopeVrms.micCalV = micCalV;
+calibration_oscopeVrms.micCaldB = micCaldB;
+calibration_oscopeVrms.Gcal = Gcal;
+calibration_oscopeVrms.freq = freq;
+calibration_oscopeVrms.Vout = Vout;
+calibration_oscopeVrms.oct = oct;
 
 savePath = 'C:\Data\Rig Software\speakerCalibration\';
-save(fullfile(savePath,['InvFiltCal_'...
+save(fullfile(savePath,['calibrationOutput_oscopeVrms_'...
     micType 'mic_'...
     num2str(Gcal) 'gain_'...
     num2str(round(freq(1)/1000)) '-' num2str(round(freq(end)/1000)) ...
     'kHz_' num2str(round(1./oct)) 'thOctInt_' ...
-    num2str(datestr(now,'yyyymmdd')) '.mat']),'calibrationInvFilt');
+    num2str(datestr(now,'yyyymmdd')) '.mat']),'calibration_oscopeVrms');
 
 %% Plot
 close all
@@ -77,12 +77,12 @@ dBwant = 75;
 
 %in case deleted local vars
 if exist('Vout','var')~=1
-    Vout = calibrationInvFilt.Vout;
-    micCalV = calibrationInvFilt.micCalV;
-    micCaldB = calibrationInvFilt.micCaldB;
-    freq = calibrationInvFilt.freq;
-    Gcal = calibrationInvFilt.Gcal;
-    oct = calibrationInvFilt.oct;
+    Vout = calibration_oscopeVrms.Vout;
+    micCalV = calibration_oscopeVrms.micCalV;
+    micCaldB = calibration_oscopeVrms.micCaldB;
+    freq = calibration_oscopeVrms.freq;
+    Gcal = calibration_oscopeVrms.Gcal;
+    oct = calibration_oscopeVrms.oct;
 end
     
 meanVout = mean(Vout,2);
