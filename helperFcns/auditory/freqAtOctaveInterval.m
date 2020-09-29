@@ -1,5 +1,5 @@
 function freqVector = freqAtOctaveInterval(startFreq,endFreq,octaveInterval)
-% freqAtOctaveInterval: create frequency vector from startFreq to endFreq
+% freqAtOctaveInterval: create frequency list from startFreq to endFreq
 %                       with frequency steps at octave interval
 %   freqVector = freqAtOctaveInterval(startFreq,endFreq,octaveInterval)
 %           

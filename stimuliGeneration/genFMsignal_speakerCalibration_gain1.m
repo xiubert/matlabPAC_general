@@ -94,7 +94,7 @@ switch answer
     case 'Load Previous'
         %load freq
         [freqFile, freqFilePath] = uigetfile('C:\Data\Rig Software\speakerCalibration\*.mat',...
-            'Choose mat file containing frequency vector...');
+            'Choose mat file containing frequency list...');
         load(fullfile(freqFilePath,freqFile))
         oct = log2(freq(2)/freq(1));
         noct = log2(freq(end)/freq(1));

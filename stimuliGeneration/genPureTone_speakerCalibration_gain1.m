@@ -12,9 +12,6 @@ function [] = genPureTone_speakerCalibration_gain1()
 %
 %   See also genPureTone_transcranial_hardcodedGain.m, inspectSignalObject.m
 
-%may want to run stim_in_DRC_to_signal_cutout_loop.m first or
-%MakeContrastDRClvlMat.m to get frequency vector
-
 %% PARAMS
 freqSavePath = 'C:\Data\Rig Software\speakerCalibration\';
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\';
@@ -30,7 +27,7 @@ rampTime = 10; %ms
 
 defPinput = {freqSavePath,signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime)};
-params = inputdlg({'Frequency Vector Save Path',...
+params = inputdlg({'Frequency List Save Path',...
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
     'Pure-tone onset (s)',...
@@ -83,7 +80,7 @@ switch answer
     case 'Load Previous'
         %load freq
         [freqFile, freqFilePath] = uigetfile('C:\Data\Rig Software\speakerCalibration\*.mat',...
-            'Choose mat file containing frequency vector...');
+            'Choose mat file containing frequency list...');
         load(fullfile(freqFilePath,freqFile))
         oct = log2(freq(2)/freq(1));
 end

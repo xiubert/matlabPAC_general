@@ -25,5 +25,7 @@ clear sMat
 
 dMat = xlsread(fullFilename,['D1:E' num2str(oscSettings.nSamples)]);
 t = dMat(:,1);
+% V = dMat(:,2);
+
 V = dMat(:,2).*oscSettings.verticalScale+oscSettings.verticalOffset;
 end

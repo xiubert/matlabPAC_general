@@ -1,5 +1,36 @@
 %% Speaker calibration using oscilloscope data files
-%obtains dB based upon average of voltage reference readings
+% average Vrms calculated from oscillosope data file used for determining
+% dB of stimulus provided Vref standard from mic calibration
+
+%Basic approach: 
+%
+%1. Generate .signal files for stimuli to be calibrated (eg.
+%   genPureTone_speakerCalibration_gain1.m)
+% 
+%2. Insert USB flash drive into oscillosope, create and set save folder
+%   (via save/recall menu)
+%
+%3. Setup mic calibrator (B&K 4231)
+%
+%4. NOTE V/Pa scale on conditioner/amp eg. 1 V/Pa, 3.16 V/Pa etc
+%
+%5. Set desired voltage and time scaling of window, then press 'PRINT' to
+%   save data file to flash drive
+% 
+%6. NOTE FOLDER NAME AND CORRESPONDING STIMULUS
+%
+%7. Situate mic for recording stimuli to be calibrated
+%
+%8. Set and note desired gain on stimulus generator containing stimuli to
+%   be calibrated
+%
+%9. Press 'PRINT' to save data file to flash drive
+% 
+%10. NOTE FOLDER NAME AND CORRESPONDING STIMULUS
+%
+%11.REPEAT X3 FOR EACH STIMULUS TO BE CALIBRATED
+
+%%
 clearvars;close all;clc;
 % oscDataDir = 'C:\Data\Rig Software\speakerCalibration\20200921';
 

@@ -1,20 +1,29 @@
-%% Inverse filter calibration approach
+%% Speaker calibration using cyclic Vrms reading from oscilloscope
 
-%Basic idea: 
-%1. obtain mic calibration factor
-%2. set gain to Gcal, record Vout for each frequency in DRC / test tones
-%   (cycle Vrms from FFT fit of frequency on oscilloscope)
-%3. Determine Gset from Vwant,Vout, and Gcal for each frequency for given dBwant
+%Basic approach: 
+%
+%0. Generate .signal files for stimuli to be calibrated (eg.
+%   genPureTone_speakerCalibration_gain1.m)
+%
+%1. NOTE V/Pa scale on conditioner/amp eg. 1 V/Pa, 3.16 V/Pa etc
+%
+%2. Mic calibration: obtain reference voltage standard for 94 dB from mic
+%   calibrator (B&K 4231)  
+%
+%3. Set ephus gain to Gcal, record Vout for each stimulus to be calibrated
+%   (cycle Vrms from FFT fit of tone frequency on oscilloscope via 'autoset')
+%
+%4. Determine Gset from Vwant,Vout, and Gcal for each frequency for given dBwant
     %gain vs Vout is linear, thus can scale V by some gain to obtain
     %desired Vout
+    
 
-%% Inverse Filter Calibration Approach w/ Dialog Input
-%new freq range:  5-40kHz 1/8 oct interval (25 freq) %pre 2019
-%2019 onward: 5-52 kHz @ 1/8 oct interval (29 freq)
+%% Calibration Approach w/ Dialog Input for Vrms via oscilloscope
+
 %load freq
 clearvars;close all;
 [freqFile, freqFilePath] = uigetfile('C:\Data\Rig Software\speakerCalibration\*.mat',...
-    'Choose mat file containing frequency vector...');
+    'Choose mat file containing list of frequencies to be calibrated...');
 load([freqFilePath freqFile])
 
 %default values
@@ -28,7 +37,7 @@ definput = {micType,num2str(VtoPa),micCalV,num2str(Gcal)};
 
 x = inputdlg({'Mic Type','Amp V/Pa','Mic Calibration (V)',...
     'Gain for Calibration'},'Speaker Calibration Settings',...
-              [1 30; 1 30;  1 30; 1 30],definput);
+              [1 80],definput);
 
 micType = x{1};
 VtoPa = str2double(x{2});          
