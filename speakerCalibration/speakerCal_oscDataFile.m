@@ -85,14 +85,14 @@ loadYN = questdlg('Create folder legend or load existing?','Folder Legend',...
 if strcmp(loadYN,'Create new folder legend')
     [lFile,lFolder] = uiputfile(fullfile(oscDataDir,'*.xlsx'),'Enter file to save folder legend...');
     idT = table(cellstr({stimDir.name})',cell(size(stimDir)),'VariableNames',{'Folder_ID','Sound_ID'});
-    writetable(idT,fullfile(lFolder,lFile));
+    writetable(idT,fullfile(lFolder,lFile),'sheet','folderLegend');
 elseif strcmp(loadYN,'Load existing')
     [lFile,lFolder] = uigetfile(fullfile(oscDataDir,'*.xlsx'),'Load folder legend'); 
 end
 
 %% LOAD COMPLETED FOLDER LEGEND
 
-idTc = readtable(fullfile(lFolder,lFile));
+idTc = readtable(fullfile(lFolder,lFile),'sheet','folderLegend');
 stimLabels = string(idTc.Sound_ID);
 
 %% Scrape Vrms from all the osc output folders
@@ -143,6 +143,7 @@ sound_ID = cell(length(dataDir),1);
 sound_ID(refSel) = {['reference: ' num2str(dBref) ' dB SPL']};
 sound_ID(~ismember(1:length(dataDir),refSel)) = cellstr(stimLabels);
 Tcal = table(sound_ID,Vrms,dBcalc);
+writetable(Tcal,fullfile(lFolder,lFile),'Sheet','output_Tcal');
 
 %% Mean output table
 
@@ -151,6 +152,7 @@ Tmean = table(Sound_ID,...
     splitapply(@mean,Tcal.Vrms,G),...
     splitapply(@mean,Tcal.dBcalc,G),...
     'VariableNames',{'sound_ID','Vrms','dB'});
+writetable(Tmean,fullfile(lFolder,lFile),'Sheet','output_Tmean');
 
 %% Get gain values and create table of gain settings
 micCalV = Tmean{contains(Tmean.sound_ID,'reference'),'Vrms'};
