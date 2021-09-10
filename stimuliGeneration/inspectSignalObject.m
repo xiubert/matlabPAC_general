@@ -99,7 +99,7 @@ for fileNo = 1:length(sigfile)
         
         ylabel('Voltage (V)')
         xlabel('Time (s)')
-        modPlotForPoster(0);
+        modPlotForPoster(false);
         %     title(strrep(sigfile{fileNo},'.signal',''),'Interpreter','none','FontWeight','normal','FontSize',8)
     end
 end
