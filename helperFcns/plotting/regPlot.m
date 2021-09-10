@@ -1,22 +1,20 @@
-function [hScatter, hRegLine, hRegLineCI, mdl, ciRegLine, hRef] = regPlot(X,Y,varargin)
+function [mdl, ciRegLine, hFig, hScatter, hRegLine, hRegLineCI, hRef] = regPlot(X,Y,varargin)
 
 p = inputParser;
 addRequired(p, 'X', @isnumeric);
 addRequired(p, 'Y', @isnumeric);
-addParameter(p,'regLine',false,@islogical)
-addParameter(p,'intercept',false,@islogical)
+addParameter(p,'regLine',true,@islogical)
+addParameter(p,'intercept',true,@islogical)
 addParameter(p,'colors',[],@(x) isequal(size(x),[2 3]))
 addParameter(p,'logScale',false,@islogical)
 addParameter(p,'sigID',false,@islogical)
 addParameter(p,'fName','scatter plot with regression line and CI',@ischar)
-addParameter(p,'refLine',true,@islogical)
+addParameter(p,'refLine',false,@islogical)
 addParameter(p,'mRefLine',1,@isnumeric)
 addParameter(p,'bRefLine',0,@isnumeric)
-addParameter(p,'squareAxis',true,@islogical)
-
+addParameter(p,'squareAxis',false,@islogical)
 
 parse(p, X, Y, varargin{:})
-
 X = p.Results.X;
 Y = p.Results.Y;
 intercept = p.Results.intercept;
@@ -42,8 +40,11 @@ else
     mdl = fitlm(tbl,'Y ~ X'); % '-1' means remove intercept
 end
 
-figure('Name',fName);
-% hRegPlot = plot(mdl);
+g = groot;
+if isempty(g.Children) || ~strcmp(fName,'scatter plot with regression line and CI')
+    hFig = figure('Name',fName);
+end
+
 if length(sigID)>1
     hScatter = gscatter(X,Y,sigID,'kk','o.');
 else
