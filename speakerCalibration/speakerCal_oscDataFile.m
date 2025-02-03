@@ -6,29 +6,39 @@
 %
 %1. Generate .signal files for stimuli to be calibrated (eg.
 %   genPureTone_speakerCalibration_gain1.m)
+%
+%2. Configure amp (B&K2690-0S1) settings according to microphone
+%   B&K 4939-A-011: Transducer Supply: 200 V, Transducer Set-up:
+%   Sensitivity -> ~4 mV/Pa
 % 
-%2. Insert USB flash drive into oscillosope, create and set save folder
+%3. NOTE V/Pa scale on conditioner/amp eg. 1 V/Pa, 3.16 V/Pa etc
+%
+%4. Insert USB flash drive into oscillosope, create and set save folder
 %   (via save/recall menu)
 %
-%3. Setup mic calibrator (B&K 4231)
+%5. Setup mic calibrator (B&K 4231) & turn on
 %
-%4. NOTE V/Pa scale on conditioner/amp eg. 1 V/Pa, 3.16 V/Pa etc
+%6. Set desired voltage and time scaling of window, then press 'PRINT' to
+% 
+%7. Press 'PRINT' to save data file to flash drive
+% 
+%8. NOTE FOLDER NAME AND CORRESPONDING STIMULUS (eg. ALLXXXX)
+% 
+%9.REPEAT 7-8 x3
+% 
+%10. Situate mic for recording rig stimuli to be calibrated
+% 
+%11. Set and note desired gain on stimulus generator containing stimuli to
+%   be calibrated (eg. 1800 in ephus for sutter 2P)
 %
-%5. Set desired voltage and time scaling of window, then press 'PRINT' to
+%12. Start stimulus
+% 
+%13. Set desired voltage and time scaling of window on oscilloscope, then press 'PRINT' to
 %   save data file to flash drive
 % 
-%6. NOTE FOLDER NAME AND CORRESPONDING STIMULUS
-%
-%7. Situate mic for recording stimuli to be calibrated
-%
-%8. Set and note desired gain on stimulus generator containing stimuli to
-%   be calibrated
-%
-%9. Press 'PRINT' to save data file to flash drive
+%14. NOTE FOLDER NAME AND CORRESPONDING STIMULUS
 % 
-%10. NOTE FOLDER NAME AND CORRESPONDING STIMULUS
-%
-%11.REPEAT X3 FOR EACH STIMULUS TO BE CALIBRATED
+%15.REPEAT X3 FOR EACH STIMULUS TO BE CALIBRATED
 
 %%
 clearvars;close all;clc;
@@ -36,7 +46,7 @@ clearvars;close all;clc;
 
 %default values
 oscDataDir = 'C:\Data\Rig Software\speakerCalibration\';
-micType = 'BK4954-B'; %other: BK4954-B OR BK4183-A-015
+micType = 'BK4939-A-011'; %other: BK4954-B OR BK4183-A-015
 micCaldB = 94; %decibel level of square mic calibration speaker (B&K TYPE 4231 SOUND CALIBRATOR)
 VtoPa = 3.16;
 Gcal = 1800;
