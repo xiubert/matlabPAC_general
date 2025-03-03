@@ -24,11 +24,11 @@ function [] = genPureTone_transcranial_hardcodedGain()
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\pureTones_transcranial'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
 pulseOnset = 3; %seconds | time of tone onset in signal
-pulseLen = 400; %ms | duration of pure-tone (just pure-tone not entire signal)
+pulseLen = 100; %ms | duration of pure-tone (just pure-tone not entire signal)
 traceLength = 10; %duration of .signal (s)
 rampType = 'linear';
 rampTime = 10; %ms
-dBlvls = '50, 60, 70';
+dBlvls = '10, 20, 30, 40, 50, 60, 70, 80';
 
 
 defPinput = {signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
@@ -72,9 +72,17 @@ end
 calS = load([calFilPath calFile]);
 calSname = fieldnames(calS);
 calSname = calSname{1};
-meanVout = mean(calS.(calSname).Vout,2);
 uMicCalV = mean(calS.(calSname).micCalV);
-freq = calS.(calSname).freq;
+
+try
+    meanVout = mean(calS.(calSname).Vout,2);
+    freq = calS.(calSname).freq;
+catch
+    freq_idx = listdlg('PromptString','Select frequencies','ListString',calS.(calSname).Tmean.sound_ID);
+    cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}})
+    freq = cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}});
+    meanVout = calS.(calSname).Tmean.Vrms(freq_idx);
+end
 
 %% Tones and amplitune mask 
 tTone = 0:1/fSampling:pulseLen-(1/fSampling);
