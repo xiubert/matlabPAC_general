@@ -19,17 +19,21 @@ fSampling = 250000; %sample rate for signal (via DAQ settings)
 pulseOnset = 0; %seconds | delay time before tone onset in signal
 pulseLen = 30; %s | duration of pure-tone (just pure-tone not entire signal)
 traceLength = 30; %duration of .signal (s)
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 
 %CHOOSE RAMP TYPE (ramp up to pure tone at beginning and ramp down at end)
 rampType = 'linear';
 % rampType = 'sinSquared';
 rampTime = 10; %ms
 
-defPinput = {freqSavePath,signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {freqSavePath,signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime)};
 params = inputdlg({'Frequency List Save Path',...
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Pure-tone onset (s)',...
     'Pure-tone duration (s)',...
     'Duration of entire stimulus (s)',...
@@ -40,11 +44,13 @@ params = inputdlg({'Frequency List Save Path',...
 freqSavePath = params{1};
 signalSavePath = params{2};
 fSampling = str2double(params{3});
-pulseOnset = str2double(params{4});
-pulseLen = str2double(params{5});
-traceLength = str2double(params{6});
-rampType = params{7};
-rampTime = str2double(params{8})/1000;
+bitDepth = str2double(params{4});
+dither = str2double(params{5});
+pulseOnset = str2double(params{6});
+pulseLen = str2double(params{7});
+traceLength = str2double(params{8});
+rampType = params{9};
+rampTime = str2double(params{10})/1000;
 
 if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
@@ -120,6 +126,19 @@ end
 
 for fq = 1:length(freq)
     y = mask.*sin(2*pi*freq(fq)*time);
+
+    %quantize to 16-bit resolution
+    % Assuming signal is normalized between -1 and 1 (true)
+    quantization_levels = 2^bitDepth;
+    scaling_factor = (quantization_levels/2) - 1; % For 16-bit, this is 32767 (negative and positive value range of available values)
+
+    if dither
+        dither_amplitude = 1/scaling_factor;
+        dither = dither_amplitude * (rand(size(y)) - 0.5);
+        y = y + dither;
+    end
+    %quantize
+    y = round(y * scaling_factor) / scaling_factor;
 
     tonename = [num2str(round(freq(fq))) 'Hz_pureTone_' ...
         num2str(pulseOnset*1000) 'msDelay_' ...
