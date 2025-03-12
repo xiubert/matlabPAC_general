@@ -15,11 +15,15 @@ rampTime = 10; %ms
 loFq = 6000; %Low Freq Cutoff (Hz) for BPN
 hiFq = 64000; %High Freq Cutoff (Hz) for BPN
 filtOrder = 100; %bandpass filter order
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 
-defPinput = {num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {num2str(fSampling),num2str(bitDepth),num2str(dither),num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime),num2str(loFq),num2str(hiFq),num2str(filtOrder),dBlvls, signalSavePath};
 params = inputdlg({
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'BPN onset (s)',...
     'BPN duration (s)',...
     'Duration of entire stimulus (s)',...
@@ -33,16 +37,18 @@ params = inputdlg({
     [1 120],defPinput);
 
 fSampling = str2double(params{1});
-pulseOnset = str2double(params{2});
-pulseLen = str2double(params{3});
-traceLength = str2double(params{4});
-rampType = params{5};
-rampTime = str2double(params{6})/1000;
-loFq = str2double(params{7});
-hiFq = str2double(params{8});
-filtOrder = str2double(params{9});
-dBlvls = cellfun(@str2double,strsplit(params{10},','));
-signalSavePath = params{11};
+bitDepth = str2double(params{2});
+dither = str2double(params{3});
+pulseOnset = str2double(params{4});
+pulseLen = str2double(params{5});
+traceLength = str2double(params{6});
+rampType = params{7};
+rampTime = str2double(params{8})/1000;
+loFq = str2double(params{9});
+hiFq = str2double(params{10});
+filtOrder = str2double(params{11});
+dBlvls = cellfun(@str2double,strsplit(params{12},','));
+signalSavePath = params{13};
 
 if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
@@ -125,6 +131,8 @@ gainedRampMaskedTone = Gset'.*y;
 
 for nAmpl = 1:length(dBlvls)
     y_sig = gainedRampMaskedTone(nAmpl,:);
+    %quantize and dither
+    y_sig = quantize_dither(y_sig, bitDepth, dither);
     BPNname = ['BPN_' num2str(round(loFq/1000)) '-' num2str(round(hiFq/1000)) 'kHz_' ...
         num2str(dBlvls(nAmpl)) 'dB_' ...
         num2str(pulseLen*1000) 'msPulse_' ...

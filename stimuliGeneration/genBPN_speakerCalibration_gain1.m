@@ -26,11 +26,15 @@ rampTime = 10; %ms
 loFq = 5000; %Low Freq Cutoff (Hz) for BPN
 hiFq = 25000; %High Freq Cutoff (Hz) for BPN
 filtOrder = 100; %bandpass filter order
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 
-defPinput = {signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime),num2str(loFq),num2str(hiFq),num2str(filtOrder)};
 params = inputdlg({'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'BPN onset (s)',...
     'BPN duration (s)',...
     'Duration of entire stimulus (s)',...
@@ -43,14 +47,16 @@ params = inputdlg({'Signal file save path',...
 
 signalSavePath = params{1};
 fSampling = str2double(params{2});
-pulseOnset = str2double(params{3});
-pulseLen = str2double(params{4});
-traceLength = str2double(params{5});
-rampType = params{6};
-rampTime = str2double(params{7})/1000;
-loFq = str2double(params{8});
-hiFq = str2double(params{9});
-filtOrder = str2double(params{10});
+bitDepth = str2double(params{3});
+dither = str2double(params{4});
+pulseOnset = str2double(params{5});
+pulseLen = str2double(params{6});
+traceLength = str2double(params{7});
+rampType = params{8};
+rampTime = str2double(params{9})/1000;
+loFq = str2double(params{10});
+hiFq = str2double(params{11});
+filtOrder = str2double(params{12});
 
 if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
@@ -98,6 +104,8 @@ figure('Name','Periodogram of Noise');
 periodogram(y,rectwin(length(y)),length(y),fSampling);
 
 y = mask.*y;
+%quantize and dither
+y = quantize_dither(y, bitDepth, dither);
 
 figure('Name','Masked signal');
 plot(time,y);
