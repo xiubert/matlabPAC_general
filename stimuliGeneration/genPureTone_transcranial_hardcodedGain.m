@@ -29,13 +29,16 @@ traceLength = 10; %duration of .signal (s)
 rampType = 'linear';
 rampTime = 10; %ms
 dBlvls = '10, 20, 30, 40, 50, 60, 70, 80';
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 
-
-defPinput = {signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime),dBlvls};
 params = inputdlg({
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Pulse onset time (s) (comma separated list)',...
     'Pulse duration (ms)',...
     'Duration of entire trace (s)',...
@@ -50,16 +53,18 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{2});
-if ~contains(params{3},',')
-    pulseOnset = str2double(params{3});
+bitDepth = str2double(params{3});
+dither = str2double(params{4});
+if ~contains(params{5},',')
+    pulseOnset = str2double(params{5});
 else
-    pulseOnset = cellfun(@str2double,strsplit(params{3},','));
+    pulseOnset = cellfun(@str2double,strsplit(params{5},','));
 end
-pulseLen = str2double(params{4})/1000;
-traceLength = str2double(params{5});
-rampType = params{6};
-rampTime = str2double(params{7})/1000;
-dBlvls = cellfun(@str2double,strsplit(params{8},','));
+pulseLen = str2double(params{6})/1000;
+traceLength = str2double(params{7});
+rampType = params{8};
+rampTime = str2double(params{9})/1000;
+dBlvls = cellfun(@str2double,strsplit(params{10},','));
 
 if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
@@ -128,6 +133,10 @@ for nAmpl = 1:length(dBlvls)
         for freqNo = 1:size(stimV,1)
             clear y tonename so S
             y = stimV(freqNo,:);
+            
+            %quantize and dither
+            y = quantize_dither(y, bitDepth, dither);
+
             tonename = [num2str(round(freq(freqNo))) 'Hz_' ...
                 num2str(dBlvls(nAmpl)) 'dB_pureTone_' ...
                 num2str(pulseLen*1000) 'msPulse_' ...
