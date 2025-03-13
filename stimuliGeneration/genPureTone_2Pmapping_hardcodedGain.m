@@ -26,6 +26,8 @@ function [] = genPureTone_2Pmapping_hardcodedGain()
 %Folder for .signal files
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\PC_TestTones_MappingBF_quick';
 sampleRate = 250000; %samples / s | Max dictated by the NI-DAQ
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 traceLen = 1.5; %seconds
 pulseLen = 400; %ms
 pulseOnset = '0.6, 1'; %seconds | time at which stim happens
@@ -39,12 +41,14 @@ gSetDBend = 70;
 % dBwant = [30:20:70]; %quick (30:20:70) %denseLvl (30:10:70)
 % dBwant = [30:20:70]; %quick (30:20:70) %denseLvl (30:10:70)
 
-definput = {signalSavePath,num2str(sampleRate),num2str(traceLen),...
-    num2str(pulseLen),num2str(pulseOnset),rampType,num2str(rampTime),...
+definput = {signalSavePath,num2str(sampleRate),num2str(bitDepth),num2str(dither),...
+    num2str(traceLen),num2str(pulseLen),num2str(pulseOnset),rampType,num2str(rampTime),...
     num2str(gSetDBstart),num2str(gSetDBstep),num2str(gSetDBend)};
 
 x = inputdlg({'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Duration of entire trace (s)',...
     'Pulse duration (ms)',...
     'Pulse onset time (s) (comma separated list)',...
@@ -61,18 +65,20 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 sampleRate = str2double(x{2});
-traceLen = str2double(x{3});
-pulseLen = str2double(x{4})/1000;          
-if ~contains(x{5},',')
-    pulseOnset = str2double(x{5});
+bitDepth = str2double(x{3});
+dither = str2double(x{4});
+traceLen = str2double(x{5});
+pulseLen = str2double(x{6})/1000;          
+if ~contains(x{7},',')
+    pulseOnset = str2double(x{7});
 else
-    pulseOnset = cellfun(@str2double,strsplit(x{5},','));
+    pulseOnset = cellfun(@str2double,strsplit(x{7},','));
 end
-rampType = x{6};
-rampTime = str2double(x{7})/1000;
-gSetDBstart = str2double(x{8});
-gSetDBstep = str2double(x{9});
-gSetDBend = str2double(x{10});
+rampType = x{8};
+rampTime = str2double(x{9})/1000;
+gSetDBstart = str2double(x{10});
+gSetDBstep = str2double(x{11});
+gSetDBend = str2double(x{12});
 dBwant = gSetDBstart:gSetDBstep:gSetDBend;
 clear gSet*
 
@@ -143,6 +149,9 @@ for nAmpl = 1:length(dBwant)
         for freqNo = 1:size(stimV,1)
             clear y tonename so S
             y = stimV(freqNo,:);
+            %quantize and dither
+            y = quantize_dither(y, bitDepth, dither);
+            
             tonename = [num2str(round(freq(freqNo))) 'Hz_' ...
                 num2str(dBwant(nAmpl)) 'dB_TestTone_' ...
                 num2str(pulseLen*1000) 'msPulse_at_' ...

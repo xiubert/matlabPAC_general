@@ -14,6 +14,8 @@ function [] = genFMsignal_speakerCalibration_gain1()
 freqSavePath = 'C:\Data\Rig Software\speakerCalibration\';
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 pulseOnset = 0; %seconds | time of tone onset in signal
 pulseLen = 30; %s | duration of pure-tone (just pure-tone not entire signal)
 traceLength = 30; %duration of .signal (s)
@@ -24,12 +26,15 @@ rampTime = 10; %ms
 Fmod = 20; %Hz modulation frequency
 modIdx = 2; %modulation index --> dFm/Fm
 
-defPinput = {freqSavePath,signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {freqSavePath,signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),...
+    num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime),num2str(Fmod),num2str(modIdx)};
 params = inputdlg({
     'Frequency list save path',...
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Pulse onset time (s)',...
     'Pulse duration (ms)',...
     'Duration of entire trace (s)',...
@@ -49,15 +54,17 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{3});
-pulseOnset = str2double(params{4});
-pulseLen = str2double(params{5});
-traceLength = str2double(params{6});
-rampType = params{7};
-rampTime = str2double(params{8})/1000;
+bitDepth = str2double(params{4});
+dither = str2double(params{5});
+pulseOnset = str2double(params{6});
+pulseLen = str2double(params{7});
+traceLength = str2double(params{8});
+rampType = params{9};
+rampTime = str2double(params{10})/1000;
 
 %FM
-Fmod = str2double(params{9});
-modIdx = str2double(params{10});
+Fmod = str2double(params{11});
+modIdx = str2double(params{12});
 %modulation index to frequency deviation
 dFm = Fmod.*modIdx; %peak frequency deviation
 
@@ -138,7 +145,9 @@ end
 for fq = 1:length(freq)
     
     y = mask.*sin((2*pi*freq(fq)*time) + (dFm./Fmod).*sin(2*pi*Fmod*time)); %carrier frequency modulated by single frequency
-    
+    %quantize and dither
+    y = quantize_dither(y, bitDepth, dither);
+
     tonename = [num2str(round(freq(fq))) 'HzCarrierTone_' ...
         num2str(Fmod) 'HzModTone_' ...
         num2str(modIdx) 'modIdx_' ...

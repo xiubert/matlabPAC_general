@@ -20,6 +20,8 @@ function [] = genPureTone_train_hardcodedGain()
 
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\stimTrain'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 stimOnset = 3; %seconds | time of tone onset in signal
 pulseLen = 400; %ms | duration of pure-tone (just pure-tone not entire signal)
 ISI = 1000; %ms
@@ -29,7 +31,7 @@ rampType = 'linear';
 rampTime = 10; %ms
 dBlvls = '50, 60, 70';
 
-defPinput = {signalSavePath,num2str(fSampling),...
+defPinput = {signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),...
     num2str(stimOnset),num2str(pulseLen),...
     num2str(ISI),num2str(nStim),num2str(afterStim),...
     rampType,num2str(rampTime),dBlvls};
@@ -37,6 +39,8 @@ defPinput = {signalSavePath,num2str(fSampling),...
 params = inputdlg({
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Pure-tone onset time (s)',...
     'Pure-tone duration (duration of each pulse) (ms)',...
     'ISI: time between pure-tone pulses (ms)',...
@@ -53,14 +57,16 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{2});
-stimOnset = str2double(params{3});
-pulseLen = str2double(params{4})/1000;
-ISI = str2double(params{5});
-nStim = str2double(params{6});
-afterStim = str2double(params{7})/1000;
-rampType = params{8};
-rampTime = str2double(params{9})/1000;
-dBlvls = cellfun(@str2double,strsplit(params{10},','));
+bitDepth = str2double(x{3});
+dither = str2double(x{4});
+stimOnset = str2double(params{5});
+pulseLen = str2double(params{6})/1000;
+ISI = str2double(params{7});
+nStim = str2double(params{8});
+afterStim = str2double(params{9})/1000;
+rampType = params{10};
+rampTime = str2double(params{11})/1000;
+dBlvls = cellfun(@str2double,strsplit(params{12},','));
 
 %% Load calibration file w/ frequencies
 [calFile,calFilPath] = uigetfile(...
@@ -126,6 +132,9 @@ for nAmpl = 1:length(dBlvls)
     for freqNo = 1:size(gainedTrains,1)
             clear y tonename so S
             y = gainedTrains(freqNo,:);
+            %quantize and dither
+            y = quantize_dither(y, bitDepth, dither);
+            
             tonename = [num2str(round(freq(freqNo))) 'Hz_' ...
                 num2str(dBlvls(nAmpl)) 'dB_pureToneTrain_' ...
                 num2str(ISI) 'msISI_' ...

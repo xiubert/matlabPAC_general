@@ -17,6 +17,8 @@ function [] = genFMsignal_hardcodedGain()
 
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\FM_tones'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
+bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
+dither = true;
 pulseOnset = 3; %seconds | time of tone onset in signal
 pulseLen = 400; %ms | tone duration (just tone, not entire signal)
 traceLength = 10; %duration of .signal (s)
@@ -28,11 +30,14 @@ dBlvls = '50, 60, 70';
 Fmod = 5; %Hz modulation frequency
 modIdx = 2; %modulation index --> dFm/Fm
 
-defPinput = {signalSavePath,num2str(fSampling),num2str(pulseOnset),num2str(pulseLen),...
+defPinput = {signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),...
+    num2str(pulseOnset),num2str(pulseLen),...
     num2str(traceLength),rampType,num2str(rampTime),dBlvls,num2str(Fmod),num2str(modIdx)};
 params = inputdlg({
     'Signal file save path',...
     'Sampling Rate for stimulus signal file (Hz)',...
+    'Bit-depth for stimulus signal file (bit)',...
+    'Dither (Yes: 1; No: 0)',...
     'Pulse onset time (s)',...
     'Pulse duration (ms)',...
     'Duration of entire trace (s)',...
@@ -49,16 +54,18 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{2});
-pulseOnset = str2double(params{3});
-pulseLen = str2double(params{4})/1000;
-traceLength = str2double(params{5});
-rampType = params{6};
-rampTime = str2double(params{7})/1000;
-dBlvls = cellfun(@str2double,strsplit(params{8},','));
+bitDepth = str2double(x{3});
+dither = str2double(x{4});
+pulseOnset = str2double(params{5});
+pulseLen = str2double(params{6})/1000;
+traceLength = str2double(params{7});
+rampType = params{8};
+rampTime = str2double(params{9})/1000;
+dBlvls = cellfun(@str2double,strsplit(params{10},','));
 
 %FM
-Fmod = str2double(params{9});
-modIdx = str2double(params{10});
+Fmod = str2double(params{11});
+modIdx = str2double(params{12});
 % modulation index to frequency deviation
 dFm = Fmod.*modIdx; %peak frequency deviation
 
