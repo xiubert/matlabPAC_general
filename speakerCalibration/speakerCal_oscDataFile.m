@@ -18,7 +18,7 @@
 %
 %5. Setup mic calibrator (B&K 4231) & turn on
 %
-%6. Set desired voltage and time scaling of window, then press 'PRINT' to
+%6. Set desired voltage and time scaling of window (consider AUTOSCALE button), then press 'PRINT' to
 % 
 %7. Press 'PRINT' to save data file to flash drive
 % 
