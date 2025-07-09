@@ -36,6 +36,18 @@ pctDeviantTones = pctDeviantTones/100;
 
 
 nTones = stimLength./ISI;
+%% save params into struct for export
+params.fSampling = fSampling;
+params.bitDepth = bitDepth;
+params.dither = dither;
+params.stimOnset = stimOnset;
+params.pulseLen = pulseLen;
+params.ISI = ISI;
+params.afterStim = afterStim;
+params.rampType = rampType;
+params.rampTime = rampTime;
+params.dB = dB;
+params.stimLength = stimLength;
 
 %% make random stim sequence
 % define standard and oddball frequencies (usually an octave apart)
@@ -54,7 +66,140 @@ stimVec(randloc) = 2;
 randloc
 % 20250519
 % randloc = [12; 86; 82; 57; 61; 21; 9; 63; 8; 6; 118; 59];
+%% visualize
+close all
+t_vis = [1:nTones]/(1/ISI);
+plot(t_vis,stimVec,'.')
+ylim([0 3])
 
+%% Add constraint: minimum of number of replicates below a certain time between oddball tones
+% show distribution of time between oddball stimuli for different oddball
+% stimulus trains
+close all
+min_rep = 8; %minimum number of tones
+min_diff_min_rep = 5; %minimum time between oddball tones
+n_variants = 12; %number of oddball train stimuli variations
+min_median = 2; %seconds | minimum median time diff between oddball
+
+
+% for rep = 1:3
+    figure;
+    randlocs = [];
+    oddballdiffs = [];
+    for i = 1:n_variants
+        stimVec_iter = ones(1, nTones);
+        randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+        while min(randloc_iter)<4
+            randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+        end
+        oddball_diff_iter = diff(sort(t_vis(randloc_iter)));
+        randlocs = [randlocs randloc_iter];
+        oddballdiffs = [oddballdiffs; oddball_diff_iter];
+    end
+
+    % ENFORCE constraints
+    while ~all(groupcounts(findgroups(oddballdiffs(oddballdiffs<min_diff_min_rep)))>min_rep) || ~all(median(oddballdiffs,2)>min_median)
+        randlocs = [];
+        oddballdiffs = [];
+        for i = 1:n_variants
+            stimVec_iter = ones(1, nTones);
+            randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+            while min(randloc_iter)<4
+                randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+            end
+            oddball_diff_iter = diff(sort(t_vis(randloc_iter)));
+            randlocs = [randlocs randloc_iter];
+            oddballdiffs = [oddballdiffs; oddball_diff_iter];
+        end
+    end
+
+    % histogram(oddballdiffs(:),20)
+    histogram(oddballdiffs(:),[0:0.5:22])
+    
+    ylabel('count')
+    xlabel('time between oddball stimulus (s)')
+    title({['number of trains: ' num2str(n_variants)],['stim len: ' num2str(stimLength) ' s | ISI: ' num2str(ISI) ' s']})
+    % saveas(gcf,['~/Downloads/oddball_time_between_stim_' num2str(rep) '.png'])
+    % saveas(gcf,['~/Downloads/oddball_time_between_stim_min_rep-' num2str(min_rep) '_minDiff-' num2str(min_diff_min_rep) '_' num2str(rep) '.png'])
+
+    % create stimVec for each oddball stimulus train and plot
+    % each column of randlocs contains oddball location in stimVec
+    stimVec = ones(n_variants, nTones);
+    figure;
+    for i = 1:n_variants
+        stimVec(i,randlocs(:,i)) = 2;
+        plot((stimVec(i,:)==2)*i,'O')
+        hold on
+    end
+
+
+% end
+
+% minimum median difference between oddball stimuli:
+% min_median = 2; %seconds
+% all(median(oddballdiffs,2)>min_median)
+
+%% Alternative/optional constraint: minimum percentage of stimuli over some time difference between oddball tones 
+% show distribution of time between oddball stimuli for 10 different stims [over x seconds at least x percent]
+close all
+min_time = 5;
+% min_pct = 0.333;
+min_pct = 0.45;
+
+
+% (sum(oddballdiffs(:)>min_time)/nTones)<min_pct
+
+% for rep = 1:4
+    figure;
+    % oddball_diff = diff(sort(t_vis(randloc)));
+    randlocs = [];
+    oddballdiffs = [];
+    for i = 1:n_variants
+        stimVec_iter = ones(1, nTones);
+        randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+        while min(randloc_iter)<4
+            randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+        end
+        oddball_diff_iter = diff(sort(t_vis(randloc_iter)));
+        randlocs = [randlocs randloc_iter];
+        oddballdiffs = [oddballdiffs; oddball_diff_iter];
+    end
+
+    % ENFORCE constraints
+    while (sum(oddballdiffs(:)>min_time)/nTones)<min_pct || ~all(median(oddballdiffs,2)>min_median)
+        randlocs = [];
+        oddballdiffs = [];
+        for i = 1:n_variants
+            stimVec_iter = ones(1, nTones);
+            randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+            while min(randloc_iter)<4
+                randloc_iter = randsample(nTones, nTones*pctDeviantTones);
+            end
+            oddball_diff_iter = diff(sort(t_vis(randloc_iter)));
+            randlocs = [randlocs randloc_iter];
+            oddballdiffs = [oddballdiffs; oddball_diff_iter];
+        end
+    end
+
+    % histogram(oddballdiffs(:),20)
+    histogram(oddballdiffs(:),[0:0.5:22])
+    
+    ylabel('count')
+    xlabel('time between oddball stimulus (s)')
+    title({['number of trains: ' num2str(n_variants)],['stim len: ' num2str(stimLength) ' s | ISI: ' num2str(ISI) ' s']})
+    % saveas(gcf,['~/Downloads/oddball_time_between_stim_' num2str(rep) '.png'])
+    % saveas(gcf,['~/Downloads/oddball_time_between_stim_min_time-' num2str(min_time) '_minpct-' num2str(min_pct) '_' num2str(rep) '.png'])
+   
+    % create stimVec for each oddball stimulus train and plot
+    % each column of randlocs contains oddball location in stimVec
+    stimVec = ones(n_variants, nTones);
+    figure;
+    for i = 1:n_variants
+        stimVec(i,randlocs(:,i)) = 2;
+        plot((stimVec(i,:)==2)*i,'O')
+        hold on
+    end
+% end
 
 %% create pure-tones with onset/offset mask
 
@@ -103,36 +248,89 @@ end
 gainedRampMaskedTones = gainf'.*rampMaskedTones;
 
 %% make stim sequence with gained tones
-
-% set pre-stim
-addvec = zeros(1,stimOnset*fSampling);
-% add each tone in sequence w/ ISI
-for stimpos = 1:length(stimVec)
-    addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
+% stimVec contains sequence of tone indices (either oddball or standard)
+% standard is frequency index 1
+% oddball is frequency index 2
+% this creates actual sound stimulus train by concatenating gained and
+% onset-ramped pure tones based upon stimVec sequence
+if size(stimVec,1)==1
+    % set pre-stim
+    addvec = zeros(1,stimOnset*fSampling);
+    % add each tone in sequence w/ ISI
+    for stimpos = 1:length(stimVec)
+        addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
+    end
+    % add time after stim
+    y = cat(2,addvec,zeros(1,afterStim*fSampling));
+else
+    y = [];
+    for variant = 1:n_variants
+        % set pre-stim
+        addvec = zeros(1,stimOnset*fSampling);
+        % add each tone in sequence w/ ISI
+        for stimpos = 1:length(stimVec)
+            addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
+        end
+        % add time after stim
+        y = cat(1,y,cat(2,addvec,zeros(1,afterStim*fSampling)));
+    end
 end
-% add time after stim
-y = cat(2,addvec,zeros(1,afterStim*fSampling));
+
 %% look at stim
-tStim = 0:1/fSampling:length(y)/fSampling-(1/fSampling);
-plot(tStim,y)
+
+if size(stimVec,1)==1
+    tStim = 0:1/fSampling:length(y)/fSampling-(1/fSampling);
+    plot(tStim,y)
+else
+    tStim = 0:1/fSampling:size(y,2)/fSampling-(1/fSampling);
+    plot(tStim,y(1,:))
+end
 
 %% make stim SignalObject file for Ephus
 
-%quantize and dither
-y = quantize_dither(y, bitDepth, dither);
+if size(y,1)==1
+    %quantize and dither
+    y = quantize_dither(y, bitDepth, dither);
+    
+    tonename = ['oddball_' num2str(freq(2)) 'Hz_std_' num2str(freq(1)) 'Hz_'...
+        dB 'dB_' ...
+        num2str(ISI*1000) 'msISI_' ...
+        num2str(pulseLen*1000) 'msPulse_' ...
+        num2str(stimOnset) 'sOnset_' ...           
+        num2str(afterStim*1000) 'msAfterTrain_' ...
+        rampType 'Ramp' ...
+        num2str(rampTime*1000) 'ms_' ...
+        num2str(length(y)/fSampling) 'sTotal_Fs' ...
+        num2str(fSampling/1000) 'kHz'];
+    
+    so = signalobject('type','literal','name',tonename,...
+        'length',length(y)/fSampling,'sampleRate',fSampling,'signal',y);
+    S.signal = so;
+    saveCompatible(fullfile(signalSavePath, [get(so, 'Name'), '.signal']), '-struct', 'S');
+else
+    for variant = 1:n_variants
+        %quantize and dither
+        y_sig = quantize_dither(y(variant,:), bitDepth, dither);
+        
+        tonename = ['oddball_' num2str(freq(2)) 'Hz_std_' num2str(freq(1)) 'Hz_'...
+            dB 'dB_' ...
+            num2str(ISI*1000) 'msISI_' ...
+            num2str(pulseLen*1000) 'msPulse_' ...
+            num2str(stimOnset) 'sOnset_' ...           
+            num2str(afterStim*1000) 'msAfterTrain_' ...
+            rampType 'Ramp' ...
+            num2str(rampTime*1000) 'ms_' ...
+            num2str(length(y_sig)/fSampling) 'sTotal_Fs' ...
+            num2str(fSampling/1000) 'kHz_' num2str(variant)];
+        
+        so = signalobject('type','literal','name',tonename,...
+            'length',length(y_sig)/fSampling,'sampleRate',fSampling,'signal',y_sig);
+        S.signal = so;
+        saveCompatible(fullfile(signalSavePath, [get(so, 'Name'), '.signal']), '-struct', 'S');
+    end
+end
 
-tonename = ['oddball_' num2str(freq(2)) 'Hz_std_' num2str(freq(1)) 'Hz_'...
-    dB 'dB_' ...
-    num2str(ISI*1000) 'msISI_' ...
-    num2str(pulseLen*1000) 'msPulse_' ...
-    num2str(stimOnset) 'sOnset_' ...           
-    num2str(afterStim*1000) 'msAfterTrain_' ...
-    rampType 'Ramp' ...
-    num2str(rampTime*1000) 'ms_' ...
-    num2str(length(y)/fSampling) 'sTotal_Fs' ...
-    num2str(fSampling/1000) 'kHz'];
-
-so = signalobject('type','literal','name',tonename,...
-    'length',length(y)/fSampling,'sampleRate',fSampling,'signal',y);
-S.signal = so;
-saveCompatible(fullfile(signalSavePath, [get(so, 'Name'), '.signal']), '-struct', 'S');
+%% optionally save parameters and stimVec
+oddballs.params = params;
+oddballs.stimVec = stimVec;
+save(["./oddball_stim_" string(datetime("today")) ".mat"],"oddballs",'-mat')
