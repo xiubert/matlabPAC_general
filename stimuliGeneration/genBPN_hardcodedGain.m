@@ -114,7 +114,9 @@ bpn_cal_idx = listdlg('PromptString','Select BPN calibration signal','ListString
 meanVout = calS.(calSname).Tmean.Vrms(bpn_cal_idx);
 Vwant = dBwant2voltage(dBlvls,uMicCalV);
 Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
-if any(Gset>10000,'all')
+%   not valid in versions prior to R2018b
+%   if any(Gset>10000,'all')
+if any(Gset(:) > 10000)
     warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
     [a,b] = find(Gset>10000);
     Tproblem = table(freq(a)',dBlvls(b)',...
