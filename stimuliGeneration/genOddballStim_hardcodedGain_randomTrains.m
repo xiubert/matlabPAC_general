@@ -1,5 +1,5 @@
 % based upon:
-% McCollum, Mason, Abbey Manning, Philip T. R. Bender, Benjamin Z. Mendelson, and Charles T. Anderson. “Cell-Type-Specific Enhancement of Deviance Detection by Synaptic Zinc in the Mouse Auditory Cortex.” Proceedings of the National Academy of Sciences of the United States of America 121, no. 40 (October 2024): e2405615121. https://doi.org/10.1073/pnas.2405615121.
+% McCollum, Mason, Abbey Manning, Philip T. R. Bender, Benjamin Z. Mendelson, and Charles T. Anderson. “Cell-Type-Specific Enhancement of Deviance Detection by Synaptic Zinc in the Mouse Auditory Cortex.�? Proceedings of the National Academy of Sciences of the United States of America 121, no. 40 (October 2024): e2405615121. https://doi.org/10.1073/pnas.2405615121.
 
 % 100 ms pulse width
 % 5 ms cos ramp
@@ -14,19 +14,20 @@
 
 
 %% SET PARAMETERS
-signalSavePath = 'C:\DATA\Charlie\sinewavePulseFiles\250kHzPulses\oddball'; %Folder for .signal files
+signalSavePath = 'C:\DATA\Charlie\sinewavePulseFiles\250kHzPulses\oddball_20250731_newRand_1secISI_5trains_70dB'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
 bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
 dither = true;
 stimOnset = 3; %seconds | time of tone onset in signal
 pulseLen = 100; %ms | duration of pure-tone (just pure-tone not entire signal)
-ISI = 500; %ms
+ISI = 1000; %ms
 afterStim = 4000; %ms
 rampType = 'sinSquared';
 rampTime = 5; %ms
-dB = '80';
-stimLength = 60; %s
+dB = '70';
+stimLength = 80; %s
 pctDeviantTones = 10;
+n_variants = 5; %number of oddball train stimuli variations
 
 pulseLen = pulseLen/1000;
 rampTime = rampTime/1000;
@@ -53,11 +54,12 @@ params.stimLength = stimLength;
 % define standard and oddball frequencies (usually an octave apart)
 % should exist in calibration data
 freq = [7711 15422];
+% freq = [15422 7711];
 
 % standard tone is frequency index 1
 stimVec = ones(1, nTones);
 randloc = randsample(nTones, nTones*pctDeviantTones);
-while min(randloc)<4
+while min(randloc)<5
     randloc = randsample(nTones, nTones*pctDeviantTones);
 end
 
@@ -76,11 +78,9 @@ ylim([0 3])
 % show distribution of time between oddball stimuli for different oddball
 % stimulus trains
 close all
-min_rep = 8; %minimum number of tones
+min_rep = 4; %minimum number of tones
 min_diff_min_rep = 5; %minimum time between oddball tones
-n_variants = 12; %number of oddball train stimuli variations
-min_median = 2; %seconds | minimum median time diff between oddball
-
+min_median = 1; %seconds | minimum median time diff between oddball
 
 % for rep = 1:3
     figure;
@@ -201,6 +201,11 @@ min_pct = 0.45;
     end
 % end
 
+
+%% load stimuli
+stimVec = oddballs.stimVec;
+
+
 %% create pure-tones with onset/offset mask
 
 tPulse = 0:1/fSampling:pulseLen-(1/fSampling);
@@ -263,32 +268,24 @@ if size(stimVec,1)==1
     % add time after stim
     y = cat(2,addvec,zeros(1,afterStim*fSampling));
 else
-    y = [];
-    for variant = 1:n_variants
-        % set pre-stim
-        addvec = zeros(1,stimOnset*fSampling);
-        % add each tone in sequence w/ ISI
-        for stimpos = 1:length(stimVec)
-            addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
-        end
-        % add time after stim
-        y = cat(1,y,cat(2,addvec,zeros(1,afterStim*fSampling)));
-    end
+%     y = [];
+%     for variant = 1:n_variants
+%         % set pre-stim
+%         addvec = zeros(1,stimOnset*fSampling);
+%         % add each tone in sequence w/ ISI
+%         for stimpos = 1:size(stimVec,2)
+%             addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(variant, stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
+%         end
+%         % add time after stim
+%         y = cat(1,y,cat(2,addvec,zeros(1,afterStim*fSampling)));
+%     end
 end
 
-%% look at stim
 
-if size(stimVec,1)==1
-    tStim = 0:1/fSampling:length(y)/fSampling-(1/fSampling);
-    plot(tStim,y)
-else
-    tStim = 0:1/fSampling:size(y,2)/fSampling-(1/fSampling);
-    plot(tStim,y(1,:))
-end
 
 %% make stim SignalObject file for Ephus
 
-if size(y,1)==1
+if size(stimVec,1)==1
     %quantize and dither
     y = quantize_dither(y, bitDepth, dither);
     
@@ -309,9 +306,20 @@ if size(y,1)==1
     saveCompatible(fullfile(signalSavePath, [get(so, 'Name'), '.signal']), '-struct', 'S');
 else
     for variant = 1:n_variants
-        %quantize and dither
-        y_sig = quantize_dither(y(variant,:), bitDepth, dither);
         
+        % set pre-stim
+        addvec = zeros(1,stimOnset*fSampling);
+        % add each tone in sequence w/ ISI
+        for stimpos = 1:size(stimVec,2)
+            addvec = cat(2,addvec,[gainedRampMaskedTones(stimVec(variant, stimpos),:) zeros(1,((ISI)-(pulseLen))*fSampling)]);
+        end
+        % add time after stim
+        y = cat(2,addvec,zeros(1,afterStim*fSampling));
+        
+        %quantize and dither
+%         y_sig = quantize_dither(y(variant,:), bitDepth, dither);
+        y_sig = quantize_dither(y, bitDepth, dither);
+
         tonename = ['oddball_' num2str(freq(2)) 'Hz_std_' num2str(freq(1)) 'Hz_'...
             dB 'dB_' ...
             num2str(ISI*1000) 'msISI_' ...
@@ -329,6 +337,16 @@ else
         saveCompatible(fullfile(signalSavePath, [get(so, 'Name'), '.signal']), '-struct', 'S');
     end
 end
+
+%% look at stim
+
+% if size(stimVec,1)==1
+tStim = 0:1/fSampling:length(y)/fSampling-(1/fSampling);
+plot(tStim,y)
+% else
+%     tStim = 0:1/fSampling:size(y,2)/fSampling-(1/fSampling);
+%     plot(tStim,y(2,:))
+% end
 
 %% optionally save parameters and stimVec
 oddballs.params = params;
