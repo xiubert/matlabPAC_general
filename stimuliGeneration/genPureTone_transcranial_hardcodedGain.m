@@ -105,7 +105,7 @@ elseif strcmp(rampType,'sinSquared')
     f = 1/rampTime;
     f = 0.25*f; %first quarter of sin(x)^2 is ramp up    
     toneRampMask = [sin(2*pi*f*tTone(tTone<rampTime)).^2 ... %ramp up
-        ones(1,round((pulseLen-2*rampTime)*fSampling)) ... %stim
+        ones(1,(pulseLen-2*rampTime)*fSampling) ... %stim
         cos(2*pi*f*tTone(tTone<rampTime)).^2]; %ramp down
 end
 
