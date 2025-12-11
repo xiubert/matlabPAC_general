@@ -93,6 +93,10 @@ end
 tTone = 0:1/fSampling:pulseLen-(1/fSampling);
 tones = sin(2.*pi.*freq'.*tTone);
 
+if rem((pulseLen-2*rampTime)*fSampling,1)>0.000001
+    error("stim not integer")
+end
+
 if strcmp(rampType,'linear')
     toneRampMask = [linspace(0,1,rampTime*fSampling) ... %ramp up
         ones(1,(pulseLen-2*rampTime)*fSampling)... %stim
@@ -101,7 +105,7 @@ elseif strcmp(rampType,'sinSquared')
     f = 1/rampTime;
     f = 0.25*f; %first quarter of sin(x)^2 is ramp up    
     toneRampMask = [sin(2*pi*f*tTone(tTone<rampTime)).^2 ... %ramp up
-        ones(1,(pulseLen-2*rampTime)*fSampling) ... %stim
+        ones(1,round((pulseLen-2*rampTime)*fSampling)) ... %stim
         cos(2*pi*f*tTone(tTone<rampTime)).^2]; %ramp down
 end
 
@@ -110,7 +114,9 @@ rampMaskedTones = toneRampMask.*tones;
 %% Gain tones and save signals
 Vwant = dBwant2voltage(dBlvls,uMicCalV);
 Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
-if any(Gset>10000,'all')
+%   not valid in versions prior to R2018b
+%   if any(Gset>10000,'all')
+if any(Gset(:) > 10000)
     warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
     [a,b] = find(Gset>10000);
     Tproblem = table(freq(a)',dBlvls(b)',...
