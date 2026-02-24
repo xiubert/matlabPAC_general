@@ -89,10 +89,17 @@ clear gSet*
 calS = load([calFilPath calFile]);
 calSname = fieldnames(calS);
 calSname = calSname{1};
-meanVout = mean(calS.(calSname).Vout,2);
 uMicCalV = mean(calS.(calSname).micCalV);
-freq = calS.(calSname).freq;
 
+% accommodate two calibration file formats
+try
+    meanVout = mean(calS.(calSname).Vout,2);
+    freq = calS.(calSname).freq;
+catch
+    freq_idx = listdlg('PromptString','Select frequencies','ListString',calS.(calSname).Tmean.sound_ID);
+    freq = cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}});
+    meanVout = calS.(calSname).Tmean.Vrms(freq_idx);
+end
 %% create enveloped tones
 
 tPulse = 0:1/sampleRate:pulseLen-(1/sampleRate);
