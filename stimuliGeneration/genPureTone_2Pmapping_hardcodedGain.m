@@ -90,12 +90,13 @@ calS = load([calFilPath calFile]);
 calSname = fieldnames(calS);
 calSname = calSname{1};
 uMicCalV = mean(calS.(calSname).micCalV);
+
+% accommodate two calibration file formats
 try
     meanVout = mean(calS.(calSname).Vout,2);
     freq = calS.(calSname).freq;
 catch
     freq_idx = listdlg('PromptString','Select frequencies','ListString',calS.(calSname).Tmean.sound_ID);
-    cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}});
     freq = cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}});
     meanVout = calS.(calSname).Tmean.Vrms(freq_idx);
 end
