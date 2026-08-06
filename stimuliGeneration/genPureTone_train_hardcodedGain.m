@@ -6,6 +6,16 @@ function [] = genPureTone_train_hardcodedGain()
 %   NOTE: List of pure-tone frequencies generated is determined
 %         from calibration file
 %
+%   NOTE: Each generated train is at a SINGLE constant sound level.
+%         The dB list is a batch-generation convenience, not a
+%         within-train level sequence: one .signal file is written for
+%         every (frequency, dB) pair, ie. length(freq)*length(dBlvls)
+%         files total. Within a given file, every pulse of the train
+%         receives the same gain (see the Gset(:,nAmpl) scaling below),
+%         and the file name encodes that one frequency and one dB value.
+%         Level-varying sequences must be assembled downstream by
+%         sequencing these files in the Ephus stimulator.
+%
 %   IMPORTANT: WHEN USING THESE .signal FILES,
 %              GAIN SHOULD ALWAYS BE SET TO '1' 
 %              IN EPHUS STIMULATOR
