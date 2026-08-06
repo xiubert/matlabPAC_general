@@ -3,6 +3,9 @@ function [] = genBPN_speakerCalibration_gain1()
 %                                       at gain = 1 with lower and upper
 %                                       frequency bounds
 %
+%   REQUIRES: Communications Toolbox (wgn) for the white noise vector,
+%             and Signal Processing Toolbox (fdesign/design, periodogram)
+%             for the band-pass filter
 %
 %   IMPORTANT: WHEN USING THESE .signal FILES,
 %              GAIN SHOULD BE SET TO SOME VALUE THAT RESULTS IN READABLE
@@ -94,6 +97,7 @@ bpn = design(fdesign.bandpass('N,F3dB1,F3dB2',...
     filtOrder,loFq,hiFq,fSampling));
 
 %white noise vector
+%NOTE: wgn requires the Communications Toolbox
 wn = wgn(1,fSampling*traceLength,1,'linear');
 
 % filter white noise

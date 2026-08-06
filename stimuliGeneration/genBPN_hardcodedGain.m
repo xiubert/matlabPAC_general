@@ -1,3 +1,17 @@
+% genBPN_hardcodedGain: generate band-pass noise (BPN) .signal files with
+% hardcoded gain corresponding to dB value in calibration file
+%
+%   REQUIRES: Communications Toolbox (wgn) for the white noise vector,
+%             and Signal Processing Toolbox (fdesign/design, periodogram)
+%             for the band-pass filter
+%
+%   IMPORTANT: WHEN USING THESE .signal FILES,
+%              GAIN SHOULD ALWAYS BE SET TO '1'
+%              IN EPHUS STIMULATOR
+%
+%   See also genBPN_train_hardcodedGain.m,
+%   genBPN_speakerCalibration_gain1.m, inspectSignalObject.m
+
 %%
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\BPN_transcranial'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal (via DAQ settings)
@@ -86,6 +100,7 @@ bpn = design(fdesign.bandpass('N,F3dB1,F3dB2',...
     filtOrder,loFq,hiFq,fSampling));
 
 %white noise vector
+%NOTE: wgn requires the Communications Toolbox
 wn = wgn(1,fSampling*traceLength,1,'linear');
 
 % filter white noise
