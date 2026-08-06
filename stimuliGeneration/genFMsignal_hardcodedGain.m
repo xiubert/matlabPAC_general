@@ -54,8 +54,8 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{2});
-bitDepth = str2double(x{3});
-dither = str2double(x{4});
+bitDepth = str2double(params{3});
+dither = str2double(params{4});
 pulseOnset = str2double(params{5});
 pulseLen = str2double(params{6})/1000;
 traceLength = str2double(params{7});
@@ -130,6 +130,10 @@ for nAmpl = 1:length(dBlvls)
             clear y tonename so S  
             
             y = stimV(freqNo,:);
+
+            %quantize and dither
+            y = quantize_dither(y, bitDepth, dither);
+
             tonename = [num2str(round(freq(freqNo))) 'HzCarrierTone_' ...
                 num2str(Fmod) 'HzModTone_' ...
                 num2str(modIdx) 'modIdx_' ...

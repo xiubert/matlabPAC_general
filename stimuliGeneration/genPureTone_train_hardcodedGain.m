@@ -67,8 +67,8 @@ if ~isfolder(signalSavePath)
     mkdir(signalSavePath)
 end
 fSampling = str2double(params{2});
-bitDepth = str2double(x{3});
-dither = str2double(x{4});
+bitDepth = str2double(params{3});
+dither = str2double(params{4});
 stimOnset = str2double(params{5});
 pulseLen = str2double(params{6})/1000;
 ISI = str2double(params{7});
