@@ -116,27 +116,21 @@ figure('Name','Masked signal');
 plot(time,y);
 
 %% Load calibration file w/ frequencies
-[calFile,calFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
-    'Load inverse filter calibration file for respective frequencies');
-calS = load([calFilPath calFile]);
-calSname = fieldnames(calS);
-calSname = calSname{1};
-uMicCalV = mean(calS.(calSname).micCalV);
+cal = loadSpeakerCal();
 
 %%
-bpn_cal_idx = listdlg('PromptString','Select BPN calibration signal','ListString',calS.(calSname).Tmean.sound_ID);
-meanVout = calS.(calSname).Tmean.Vrms(bpn_cal_idx);
-Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+[~,meanVout] = calSelectSounds(cal,...
+    'PromptString','Select BPN calibration signal','SelectionMode','single');
+Vwant = dBwant2voltage(dBlvls,cal.micCalV);
+Gset = Vwant2gain(Vwant,meanVout,cal.Gcal);
 %   not valid in versions prior to R2018b
 %   if any(Gset>10000,'all')
 if any(Gset(:) > 10000)
-    warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
-    [a,b] = find(Gset>10000);
-    Tproblem = table(freq(a)',dBlvls(b)',...
-        Gset(sub2ind(size(Gset),a,b)),Gset(sub2ind(size(Gset),a,b))./1000,...
-        'VariableNames',{'sound_ID','dBwant','Gset','voltage'})
+    warning('Some dB levels require a voltage greater than max input to speaker amp (TDT ED1)')
+    %one gain per requested dB level (a single BPN sound), so no freq column
+    b = find(Gset>10000);
+    Tproblem = table(dBlvls(b)',Gset(b)',Gset(b)'./1000,...
+        'VariableNames',{'dBwant','Gset','voltage'}) %#ok<NOPTS>
     error('Can''t send more than 10V to speaker driver')
 end
 

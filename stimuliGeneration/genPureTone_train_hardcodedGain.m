@@ -79,15 +79,8 @@ rampTime = str2double(params{11})/1000;
 dBlvls = cellfun(@str2double,strsplit(params{12},','));
 
 %% Load calibration file w/ frequencies
-[calFile,calFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
-    'Load inverse filter calibration file for respective frequencies');
-calS = load([calFilPath calFile]);
-calSname = fieldnames(calS);
-calSname = calSname{1};
-meanVout = mean(calS.(calSname).Vout,2);
-uMicCalV = mean(calS.(calSname).micCalV);
-freq = calS.(calSname).freq;
+cal = loadSpeakerCal();
+[freq,meanVout] = calSelectSounds(cal,'PromptString','Select frequencies');
 
 %% create pure-tones and train matrix
 
@@ -123,8 +116,8 @@ stimTrainAmpOne = [zeros(length(freq),stimOnset*fSampling) ... %before train
 traceLength = size(stimTrainAmpOne,2)/fSampling;
 
 %% gain tones and save signals
-Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+Vwant = dBwant2voltage(dBlvls,cal.micCalV);
+Gset = Vwant2gain(Vwant,meanVout,cal.Gcal);
 if any(Gset>10000,'all')
     warning('Some freq/dB combinations require a voltage greater than max input to speaker amp (TDT ED1)')
     [a,b] = find(Gset>10000);

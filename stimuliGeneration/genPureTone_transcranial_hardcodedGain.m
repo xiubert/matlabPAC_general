@@ -71,23 +71,8 @@ if traceLength<pulseOnset+pulseLen
 end
 
 %% Load calibration file w/ frequencies
-[calFile,calFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
-    'Load inverse filter calibration file for respective frequencies');
-calS = load([calFilPath calFile]);
-calSname = fieldnames(calS);
-calSname = calSname{1};
-uMicCalV = mean(calS.(calSname).micCalV);
-
-try
-    meanVout = mean(calS.(calSname).Vout,2);
-    freq = calS.(calSname).freq;
-catch
-    freq_idx = listdlg('PromptString','Select frequencies','ListString',calS.(calSname).Tmean.sound_ID);
-    cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}})
-    freq = cellfun(@str2num,{calS.(calSname).Tmean.sound_ID{freq_idx}});
-    meanVout = calS.(calSname).Tmean.Vrms(freq_idx);
-end
+cal = loadSpeakerCal();
+[freq,meanVout] = calSelectSounds(cal,'PromptString','Select frequencies');
 
 %% Tones and amplitune mask 
 tTone = 0:1/fSampling:pulseLen-(1/fSampling);
@@ -112,8 +97,8 @@ end
 rampMaskedTones = toneRampMask.*tones;
 
 %% Gain tones and save signals
-Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+Vwant = dBwant2voltage(dBlvls,cal.micCalV);
+Gset = Vwant2gain(Vwant,meanVout,cal.Gcal);
 %   not valid in versions prior to R2018b
 %   if any(Gset>10000,'all')
 if any(Gset(:) > 10000)

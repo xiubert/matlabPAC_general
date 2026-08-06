@@ -137,21 +137,13 @@ if length(dBlvls)>1 && ~randomize && length(dBlvls)~=nStim
 end
 
 %% Load calibration file w/ BPN reference
-[calFile,calFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
-    'Load inverse filter calibration file for respective frequencies');
-calS = load([calFilPath calFile]);
-calSname = fieldnames(calS);
-calSname = calSname{1};
-uMicCalV = mean(calS.(calSname).micCalV);
-
-bpn_cal_idx = listdlg('PromptString','Select BPN calibration signal',...
-    'ListString',calS.(calSname).Tmean.sound_ID);
-meanVout = calS.(calSname).Tmean.Vrms(bpn_cal_idx);
+cal = loadSpeakerCal();
+[~,meanVout] = calSelectSounds(cal,...
+    'PromptString','Select BPN calibration signal','SelectionMode','single');
 
 %% gain per requested dB level
-Vwant = dBwant2voltage(dBlvls,uMicCalV);
-Gset = Vwant2gain(Vwant,meanVout,calS.(calSname).Gcal);
+Vwant = dBwant2voltage(dBlvls,cal.micCalV);
+Gset = Vwant2gain(Vwant,meanVout,cal.Gcal);
 %   any(...,'all') not valid in versions prior to R2018b
 if any(Gset(:) > 10000)
     warning('Some dB levels require a voltage greater than max input to speaker amp (TDT ED1)')
@@ -301,7 +293,7 @@ else
     end
     fprintf(fid,'%s,%s,%s,%d,"%s",%s\n', datestr(now,'yyyymmdd_HHMMSS'),...
         BPNname, modeStr, nStim,...
-        strjoin(arrayfun(@(x) num2str(x),dBseq,'UniformOutput',false),' '), calFile);
+        strjoin(arrayfun(@(x) num2str(x),dBseq,'UniformOutput',false),' '), cal.file);
     fclose(fid);
 end
 

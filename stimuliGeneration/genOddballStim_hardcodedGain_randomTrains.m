@@ -233,24 +233,17 @@ rampMaskedTones = toneRampMask.*tones;
 
 %% Load calibration file for gain needed to achieve desired dB for selected frequencies
 
-[calFile,calFilPath] = uigetfile(...
-    'C:\Data\Rig Software\speakerCalibration\calibrationOutput*.mat',...
-    'Load inverse filter calibration file for respective frequencies');
-calS = load([calFilPath calFile]);
-calSname = fieldnames(calS);
-calSname = calSname{1};
-uMicCalV = mean(calS.(calSname).micCalV);
+cal = loadSpeakerCal();
 
 %% get gain values for tones and gain tones
+%gain is recomputed from the measured Vrms rather than read out of the
+%calibration file's TgainSet table: that table's column names differ
+%between rigs ('lvl_70_dB' vs '70 dB'), so it cannot be indexed by name
+idx = calFindSound(cal,freq);
+Gset = Vwant2gain(dBwant2voltage(str2double(dB),cal.micCalV),...
+    cal.Vrms(idx(:)),cal.Gcal);
 
-gainf = zeros(1,length(freq));
-
-for f = 1:length(freq)
-    idx = cell2mat(cellfun(@(c) strcmp(c,string(freq(f))),calS.calibration_oscopeFile.TgainSet.sound_ID,'uni',0));
-    gainf(f) = calS.calibration_oscopeFile.TgainSet.(['lvl_' dB '_dB'])(idx);
-end
-
-gainedRampMaskedTones = gainf'.*rampMaskedTones;
+gainedRampMaskedTones = Gset.*rampMaskedTones;
 
 %% make stim sequence with gained tones
 % stimVec contains sequence of tone indices (either oddball or standard)

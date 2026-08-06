@@ -37,16 +37,39 @@ calS = calS.(calSname{1});
 
 `Tmean` is the one that matters for stimulus generation. Row 1 is always the calibrator
 reference (`sound_ID` containing `'reference'`, and its `Vrms` equals `micCalV`); every
-other row is a played stimulus. The gain chain is:
+other row is a played stimulus.
+
+### Reading a calibration file
+
+Generation scripts do not touch these fields directly. They go through
+`helperFcns/auditory/loadSpeakerCal.m`, which normalizes **either** schema — the
+`Tmean` oscilloscope-file calibrations above, or older inverse-filter calibrations
+carrying `freq` + `Vout` — into one canonical struct:
 
 ```matlab
-Vwant = dBwant2voltage(dBlvls, calS.micCalV);              % desired dB -> volts
-Gset  = Vwant2gain(Vwant, refVrms, calS.Gcal);             % volts -> stimulator gain
+cal = loadSpeakerCal();                 % or loadSpeakerCal(fullPath)
+% cal.schema   'Tmean' | 'legacy'
+% cal.micCalV, cal.micCaldB, cal.Gcal
+% cal.soundID  nSounds x 1 cellstr, calibrator reference row removed
+% cal.Vrms     nSounds x 1 measured Vrms at cal.Gcal
+% cal.freq     1 x nSounds, NaN where the ID is a name rather than a frequency
+
+[freq,Vrms] = calSelectSounds(cal,'PromptString','Select frequencies');
+Vwant = dBwant2voltage(dBlvls, cal.micCalV);   % desired dB -> volts
+Gset  = Vwant2gain(Vwant, Vrms, cal.Gcal);     % volts -> stimulator gain
 ```
 
-where `refVrms` is `Tmean.Vrms` for the row matching the stimulus being generated.
-Picking the wrong row silently produces wrong sound levels, so the BPN scripts prompt
-for it via `listdlg` rather than matching a fixed string.
+`calSelectSounds` prompts with `listdlg` for `Tmean` files (which mix tones and noise)
+and returns everything without prompting for legacy files (which hold only tones).
+`calFindSound(cal, [7711 15422])` looks stimuli up non-interactively by frequency or by
+sound ID.
+
+Picking the wrong stimulus silently produces wrong sound levels, which is why selection
+is an explicit prompt rather than a fixed string match.
+
+**Never read gains from `TgainSet`.** Its column names differ between rigs (see below),
+so indexing it by name is not portable. Recompute from `cal.Vrms` with the two-line
+chain above — that is what every generation script now does.
 
 ### Differences between the current rig files
 
@@ -69,7 +92,7 @@ three ways that matter to code reading them:
    which has to be indexed as `T.('30 dB')`. The dB ranges also differ (20–80 vs 30–80)
    because the two scripts default `gSetDBstart` to 20 and 30 respectively. `TgainSet`
    is a human-facing convenience table; generation scripts recompute gains from `Tmean`
-   and are unaffected.
+   via `loadSpeakerCal` and are unaffected.
 
 Everything else is identical in format: same struct name, same field set, same classes,
 and `Tcal`/`Tmean` carry the same variable names and types in both.
@@ -80,7 +103,6 @@ Tone `sound_ID` values in the sutter file are **bare frequency strings** (`'5000
 ### Note for tone-based generation scripts
 
 These oscilloscope-derived files have **no `freq` or `Vout` fields** — per-tone data
-lives in `Tmean`, keyed by those frequency strings. Scripts that read
-`calS.(calSname).freq` / `.Vout` (for example `genPureTone_train_hardcodedGain.m`)
-cannot run against them as written, and expect a calibration file from a different
-source.
+lives in `Tmean`, keyed by those frequency strings. `loadSpeakerCal` maps both layouts
+onto `cal.freq` / `cal.Vrms`, so scripts work with either; nothing should read `.freq`
+or `.Vout` off the raw struct any more.
