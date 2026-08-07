@@ -11,7 +11,7 @@ function [] = genBPN_speakerCalibration_gain1()
 %              GAIN SHOULD BE SET TO SOME VALUE THAT RESULTS IN READABLE
 %              OUTPUT FROM OSCILLOSCOPE
 %
-%   See also genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain1, inspectSignalObject.m
+%   See also genPureTone_hardcodedGain.m, genPureTone_speakerCalibration_gain1, inspectSignalObject.m
 
 %% PARAMS
 signalSavePath = 'C:\Data\Rig Software\250kHzPulses\';

@@ -6,7 +6,7 @@ function [] = genFMsignal_speakerCalibration_gain1()
 %         entered or loaded from file
 %
 %
-%   See also genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain.m, inspectSignalObject.m
+%   See also genPureTone_hardcodedGain.m, genPureTone_speakerCalibration_gain.m, inspectSignalObject.m
 
 
 %% PARAMS

@@ -10,7 +10,7 @@ function [] = genPureTone_speakerCalibration_gain1()
 %              GAIN SHOULD BE SET TO SOME VALUE THAT RESULTS IN READABLE
 %              OUTPUT FROM OSCILLOSCOPE
 %
-%   See also genPureTone_transcranial_hardcodedGain.m, inspectSignalObject.m
+%   See also genPureTone_hardcodedGain.m, inspectSignalObject.m
 
 %% PARAMS
 freqSavePath = 'C:\Data\Rig Software\speakerCalibration\';

@@ -20,7 +20,7 @@ function [] = genPureTone_train_hardcodedGain()
 %              GAIN SHOULD ALWAYS BE SET TO '1' 
 %              IN EPHUS STIMULATOR
 %
-%   See also genPureTone_transcranial_hardcodedGain.m,
+%   See also genPureTone_hardcodedGain.m,
 %   inspectSignalObject.m,
 %   genPureTone_speakerCalibration_gain1.m,
 %   genFMsignal_hardcodedGain.m

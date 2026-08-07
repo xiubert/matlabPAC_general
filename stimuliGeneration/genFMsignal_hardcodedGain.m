@@ -10,7 +10,7 @@ function [] = genFMsignal_hardcodedGain()
 %              IN EPHUS STIMULATOR
 %
 %
-%   See also genFMsignal_speakerCalibration_gain1.m, genPureTone_transcranial_hardcodedGain.m, genPureTone_speakerCalibration_gain1.m, inspectSignalObject.m
+%   See also genFMsignal_speakerCalibration_gain1.m, genPureTone_hardcodedGain.m, genPureTone_speakerCalibration_gain1.m, inspectSignalObject.m
 
 
 %% PARAMS

@@ -13,7 +13,7 @@
 %   genBPN_speakerCalibration_gain1.m, inspectSignalObject.m
 
 %%
-signalSavePath = 'C:\Data\Rig Software\250kHzPulses\BPN_transcranial'; %Folder for .signal files
+signalSavePath = 'C:\Data\Rig Software\250kHzPulses\BPN_hardcodedGain'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal (via DAQ settings)
 pulseOnset = 3; %seconds | delay time before tone onset in signal
 pulseLen = 0.1; %s | duration of pure-tone (just pure-tone not entire signal)

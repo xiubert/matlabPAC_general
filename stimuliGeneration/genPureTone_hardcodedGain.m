@@ -1,7 +1,6 @@
-function [] = genPureTone_transcranial_hardcodedGain()
-% genPureTone_transcranial_hardcodedGain: generate pure-tone .signal files for
-% transcranial stimuli with hardcoded gain corresponding to dB value in
-% calibration file
+function [] = genPureTone_hardcodedGain()
+% genPureTone_hardcodedGain: generate pure-tone .signal files with
+% hardcoded gain corresponding to dB value in calibration file
 %
 %   NOTE: List of pure-tone frequencies generated is determined
 %         from calibration file
@@ -21,7 +20,7 @@ function [] = genPureTone_transcranial_hardcodedGain()
 
 %% PARAMS
 
-signalSavePath = 'C:\Data\Rig Software\250kHzPulses\pureTones_transcranial'; %Folder for .signal files
+signalSavePath = 'C:\Data\Rig Software\250kHzPulses\pureTones_hardcodedGain'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
 pulseOnset = 3; %seconds | time of tone onset in signal
 pulseLen = 100; %ms | duration of pure-tone (just pure-tone not entire signal)
