@@ -64,6 +64,9 @@ filtOrder = str2double(params{11});
 dBlvls = cellfun(@str2double,strsplit(params{12},','));
 signalSavePath = params{13};
 
+if ~isfolder(signalSavePath)
+    mkdir(signalSavePath)
+end
 if traceLength<pulseOnset+pulseLen
     error('Trace length must be longer than pulseOnset+pulseLength')
 end
@@ -135,10 +138,6 @@ if any(Gset(:) > 10000)
 end
 
 gainedRampMaskedTone = Gset'.*y;
-
-% stimV = [zeros(nFq,pulseOnset(tStimNo)*fSampling) ... %before stim
-%     gainedRampMaskedTones ... %stim
-%     zeros(nFq,round((traceLength-(pulseOnset(tStimNo)+pulseLen))*fSampling))]; %after stim
 
 for nAmpl = 1:length(dBlvls)
     y_sig = gainedRampMaskedTone(nAmpl,:);
