@@ -62,26 +62,26 @@ function [] = genBPN_train_hardcodedGain()
 %Because these stimuli are hardcoded with respective gain:
 %GAIN SHOULD ALWAYS BE SET TO '1' IN EPHUS STIMULATOR
 
-signalSavePath = 'C:\Data\Rig Software\250kHzPulses\stimTrain'; %Folder for .signal files
+signalSavePath = 'C:\Rig\250kHzPulses\stimTrain'; %Folder for .signal files
 fSampling = 250000; %sample rate for signal | samples / s | 250kHz is max dictated by the NI-DAQ
 bitDepth = 16; %bit depth of DAQ (USB-6229 is 16-bit)
 dither = true;
-stimOnset = 3; %seconds | time of first BPN pulse onset in signal
+stimOnset = 0; %seconds | time of first BPN pulse onset in signal
 pulseLen = 400; %ms | duration of BPN pulse (just the pulse not entire signal)
-ISI = 1000; %ms
-nStim = 3;
-afterStim = 3000; %ms
+ISI = 5000; %ms
+nStim = 8;
+traceLength = 40000; %ms
 rampType = 'linear';
 rampTime = 10; %ms
 loFq = 6000; %Low Freq Cutoff (Hz) for BPN
 hiFq = 64000; %High Freq Cutoff (Hz) for BPN
 filtOrder = 100; %bandpass filter order
-dBlvls = '50, 60, 70';
-randomize = true; %shuffle level order across pulses (ignored if one dB level)
+dBlvls = '40, 30, 80, 70, 60, 50, 20, 40';
+randomize = false; %shuffle level order across pulses (ignored if one dB level)
 
 defPinput = {signalSavePath,num2str(fSampling),num2str(bitDepth),num2str(dither),...
     num2str(stimOnset),num2str(pulseLen),...
-    num2str(ISI),num2str(nStim),num2str(afterStim),...
+    num2str(ISI),num2str(nStim),num2str(traceLength),...
     rampType,num2str(rampTime),...
     num2str(loFq),num2str(hiFq),num2str(filtOrder),...
     dBlvls,num2str(randomize)};
@@ -95,7 +95,7 @@ params = inputdlg({
     'BPN duration (duration of each pulse) (ms)',...
     'ISI: time between BPN pulses (ms)',...
     'Number of BPN pulses',...
-    'Time after last BPN pulse until end of signal (ms)',...
+    'Duration of entire stimulus (ms)',...
     'Ramp type ("linear" or "sinSquared")',...
     'Ramp time (ms)',...
     'Low Frequency Cutoff (Hz)',...
@@ -115,9 +115,9 @@ bitDepth = str2double(params{3});
 dither = str2double(params{4});
 stimOnset = str2double(params{5});
 pulseLen = str2double(params{6})/1000;
-ISI = str2double(params{7});
+ISI = str2double(params{7})/1000;
 nStim = str2double(params{8});
-afterStim = str2double(params{9})/1000;
+traceLength = str2double(params{9})/1000;
 rampType = params{10};
 rampTime = str2double(params{11})/1000;
 loFq = str2double(params{12});
@@ -201,7 +201,7 @@ end
 %unlike the pure-tone train, gain is applied PER PULSE while building the
 %envelope (rather than scaling the whole amplitude-one train at once), so
 %that each pulse can sit at its own sound level
-nGapSamp = round((ISI./1000)*fSampling);
+nGapSamp = round((ISI-pulseLen)*fSampling);
 
 gainedEnvelope = zeros(1,round(stimOnset*fSampling)); %before train
 for pulseNo = 1:nStim
@@ -210,9 +210,8 @@ for pulseNo = 1:nStim
         gainedEnvelope = [gainedEnvelope zeros(1,nGapSamp)]; %#ok<AGROW> %ISI
     end
 end
+afterStim = traceLength-stimOnset-(nStim-1)*ISI-pulseLen;
 gainedEnvelope = [gainedEnvelope zeros(1,round(afterStim*fSampling))]; %after train
-
-traceLength = length(gainedEnvelope)/fSampling;
 
 %% create BPN vector and envelope signal
 % bandpass filter
@@ -254,7 +253,7 @@ end
 
 BPNname = ['BPN_' num2str(round(loFq/1000)) '-' num2str(round(hiFq/1000)) 'kHz_' ...
     lvlStr 'dB_' modeStr '_BPNtrain_' ...
-    num2str(ISI) 'msISI_' ...
+    num2str(ISI*1000) 'msISI_' ...
     num2str(nStim) 'pulses_' ...
     num2str(pulseLen*1000) 'msPulse_' ...
     num2str(stimOnset) 'sBegin_' ...

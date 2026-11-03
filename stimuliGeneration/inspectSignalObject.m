@@ -59,7 +59,7 @@ for fileNo = 1:length(sigfile)
         
         if contains(sigfile{fileNo},'DRC')
             %determine contrast level
-            [colors,~] = getContrastDRCvars();
+            colors = getContrastColors();
             dBspan = regexp(sigfile{fileNo},'(?<a>\d{2}-\d{2})dB','tokens','once');
             dBdelta = abs(eval(string(dBspan{1})));
             pColor = colors.lohiPre((dBdelta>15)+1,:);
